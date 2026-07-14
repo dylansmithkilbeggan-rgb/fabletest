@@ -36,7 +36,7 @@ export default function Home() {
             </h1>
             <p>
               Upload your designs, lay out a full A4 sheet exactly how you want it, and we’ll
-              print, cut and ship it. Waterproof vinyl, borders that hug every curve.
+              print it, seal it with clear or holographic vinyl, and cut every curve by hand.
             </p>
             <div className="hero-actions">
               <Link to="/design" className="btn btn-primary btn-lg">
@@ -70,9 +70,9 @@ export default function Home() {
             <p>Mix as many designs as you like on one sheet. Drag, resize and rotate until it’s perfect.</p>
           </div>
           <div className="feature">
-            <div className="feature-icon">🚚</div>
-            <h3>Printed &amp; shipped fast</h3>
-            <p>Durable matte vinyl, printed within 2 working days. Free shipping on orders over $30.</p>
+            <div className="feature-icon">✨</div>
+            <h3>Clear or holographic finish</h3>
+            <p>Every sheet can be sealed with a layer of clear or holographic vinyl over the print — or kept plain.</p>
           </div>
         </div>
       </section>

@@ -1212,7 +1212,17 @@ input[type='range'] {
   flex: 1;
 }
 
+.finish-blurb {
+  display: block;
+  font-weight: 400;
+}
+
 /* ---------- Admin ---------- */
+
+.admin-lock {
+  max-width: 400px;
+  margin: 3rem auto;
+}
 
 .admin-stats {
   display: grid;

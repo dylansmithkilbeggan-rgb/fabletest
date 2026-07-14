@@ -5,23 +5,28 @@ export default function About() {
     <div className="container page about">
       <div className="page-head">
         <h1>About Faithfull Stickers</h1>
-        <p className="muted">Small studio, sharp blades, sticky output.</p>
+        <p className="muted">One maker, sharp blades, sticky output.</p>
       </div>
 
       <div className="about-body">
         <p>
-          Faithfull Stickers started with a cheap cutting plotter, a kitchen table, and the firm
-          belief that every laptop, water bottle and guitar case deserves better decoration. Today
-          we print and die-cut custom vinyl stickers for artists, small businesses and anyone with
-          a design and a surface to cover.
+          Faithfull Stickers is a one-person studio making custom die-cut stickers. Every sheet is
+          printed, then finished by hand with a layer of clear or holographic vinyl laid over the
+          top of the print — the stickers aren’t printed on vinyl, the vinyl goes on them. That
+          overlay is what seals the design and gives it the glossy (or rainbow-shifting) finish.
         </p>
         <p>
-          Everything is printed on durable matte vinyl that survives rain, dishwashers and questionable
-          life choices. Our die-cutting follows the actual outline of your artwork — that clean white
-          edge that makes a sticker feel like a <em>sticker</em>.
+          You can also order a sheet plain, without the vinyl layer, if you just want the printed
+          stickers as they are. Either way, every sticker is cut along the actual outline of the
+          artwork — that clean white edge that makes a sticker feel like a <em>sticker</em>.
         </p>
         <p>
-          The name? A promise: your print will stay faithful to your design. Colors, curves and all.
+          Pricing is simple: <strong>$5 for an A4 page</strong> without vinyl, or{' '}
+          <strong>$7 with a clear or holographic vinyl finish</strong>.
+        </p>
+        <p>
+          The name? A promise: your sticker will stay faithful to your design. Colors, curves and
+          all.
         </p>
       </div>
 
@@ -32,9 +37,9 @@ export default function About() {
           <p>Your artwork drives everything — we just make it stick.</p>
         </div>
         <div className="feature">
-          <div className="feature-icon">🌧️</div>
-          <h3>Built to last</h3>
-          <p>Waterproof, scratch-resistant matte vinyl on every order.</p>
+          <div className="feature-icon">✨</div>
+          <h3>Hand-finished</h3>
+          <p>Clear or holographic vinyl applied over every print, sealing it in.</p>
         </div>
         <div className="feature">
           <div className="feature-icon">📦</div>

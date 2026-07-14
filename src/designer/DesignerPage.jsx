@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useStore } from '../context/StoreContext.jsx'
 import { A4, renderSheetCanvas } from '../utils/stickerRender.js'
-import { customSheetPrice, PRICES } from '../utils/pricing.js'
+import { customSheetPrice, getFinish, FINISHES } from '../utils/pricing.js'
 import { formatPrice, formatSize } from '../utils/format.js'
 import StickerNode from './StickerNode.jsx'
 
@@ -61,6 +61,7 @@ export default function DesignerPage() {
   const location = useLocation()
 
   const [stickers, setStickers] = useState([])
+  const [finish, setFinish] = useState('clear')
   const [selectedId, setSelectedId] = useState(null)
   const [guides, setGuides] = useState({ v: null, h: null })
   const [previewMode, setPreviewMode] = useState(false)
@@ -95,7 +96,10 @@ export default function DesignerPage() {
         image: await loadImage(s.src),
       })),
     ).then((loaded) => {
-      if (!cancelled) setStickers(loaded)
+      if (!cancelled) {
+        setStickers(loaded)
+        setFinish(editItem.design.finish ?? 'clear')
+      }
     })
     return () => {
       cancelled = true
@@ -192,12 +196,13 @@ export default function DesignerPage() {
     const payload = {
       type: 'custom-sheet',
       name: 'Custom A4 sticker sheet',
-      detail: `${stickers.length} sticker${stickers.length === 1 ? '' : 's'} on one A4 sheet`,
-      unitPrice: customSheetPrice(stickers.length),
+      detail: `${stickers.length} sticker${stickers.length === 1 ? '' : 's'} · ${getFinish(finish).label.toLowerCase()}`,
+      unitPrice: customSheetPrice(finish),
       thumbnail,
       // Full layout capture — enough for a backend to reproduce the print.
       design: {
         sheet: 'A4',
+        finish,
         stickers: stickers.map(({ image, ...rest }) => rest),
       },
     }
@@ -210,7 +215,7 @@ export default function DesignerPage() {
   }
 
   const selected = stickers.find((s) => s.id === selectedId) ?? null
-  const price = customSheetPrice(stickers.length)
+  const price = customSheetPrice(finish)
 
   return (
     <div className="container page designer-page">
@@ -356,16 +361,27 @@ export default function DesignerPage() {
               <span>Images on sheet</span>
               <span>{stickers.length}</span>
             </div>
-            <div className="summary-row">
-              <span>Base sheet (1 image)</span>
-              <span>{formatPrice(PRICES.customSheetBase)}</span>
-            </div>
-            {stickers.length > 1 && (
-              <div className="summary-row">
-                <span>{stickers.length - 1} extra image{stickers.length > 2 ? 's' : ''}</span>
-                <span>{formatPrice((stickers.length - 1) * PRICES.customSheetPerExtraImage)}</span>
+            <div className="control">
+              <label>Finish</label>
+              <div className="size-options">
+                {FINISHES.map((f) => (
+                  <label key={f.id} className={`size-option ${f.id === finish ? 'active' : ''}`}>
+                    <input
+                      type="radio"
+                      name="sheet-finish"
+                      value={f.id}
+                      checked={f.id === finish}
+                      onChange={() => setFinish(f.id)}
+                    />
+                    <span>
+                      {f.label}
+                      <span className="muted small finish-blurb">{f.blurb}</span>
+                    </span>
+                    <strong>{formatPrice(f.price)}</strong>
+                  </label>
+                ))}
               </div>
-            )}
+            </div>
             <div className="summary-row summary-total">
               <span>Sheet price</span>
               <span>{stickers.length > 0 ? formatPrice(price) : '—'}</span>

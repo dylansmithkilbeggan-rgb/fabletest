@@ -1,19 +1,27 @@
-// Simple default pricing model:
-//  - A custom A4 sheet costs a flat base price which includes one design,
-//    plus a small fee for each extra image placed on the sheet.
+// Pricing model:
+//  - A custom A4 sheet is a flat price per page, set by the finish:
+//    plain (no vinyl) or sealed with clear / holographic vinyl laid over
+//    the print.
 //  - Premade stickers have fixed per-sticker prices (see data/products.js).
 //  - Flat shipping, free above a threshold.
 
 export const PRICES = {
-  customSheetBase: 6.5,
-  customSheetPerExtraImage: 1.0,
   shippingFlat: 4.0,
   freeShippingThreshold: 30,
 }
 
-export function customSheetPrice(imageCount) {
-  if (imageCount <= 0) return 0
-  return PRICES.customSheetBase + (imageCount - 1) * PRICES.customSheetPerExtraImage
+export const FINISHES = [
+  { id: 'clear', label: 'Clear vinyl', price: 7.0, blurb: 'Glossy seal over the print' },
+  { id: 'holo', label: 'Holographic vinyl', price: 7.0, blurb: 'Rainbow-shift seal' },
+  { id: 'none', label: 'No vinyl', price: 5.0, blurb: 'Just the printed sheet' },
+]
+
+export function getFinish(finishId) {
+  return FINISHES.find((f) => f.id === finishId) ?? FINISHES[0]
+}
+
+export function customSheetPrice(finishId) {
+  return getFinish(finishId).price
 }
 
 export function cartTotals(items) {
