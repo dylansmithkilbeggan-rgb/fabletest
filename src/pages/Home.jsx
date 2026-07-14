@@ -2,10 +2,26 @@ import { Link } from 'react-router-dom'
 import { PRODUCTS } from '../data/products.js'
 import StickerCard from '../components/StickerCard.jsx'
 
+// Drop your own sticker photos into src/assets/hero/ (png/jpg/webp/svg) and
+// they replace the placeholder SVGs below automatically — sorted by filename,
+// first five are shown.
+const heroUploads = Object.entries(
+  import.meta.glob('../assets/hero/*.{png,jpg,jpeg,webp,svg}', {
+    eager: true,
+    query: '?url',
+    import: 'default',
+  }),
+)
+  .sort(([a], [b]) => a.localeCompare(b))
+  .map(([, url]) => url)
+
 const HERO_STICKERS = ['sunny', 'bolt', 'cat', 'rainbow', 'ghost']
 
 export default function Home() {
-  const heroProducts = HERO_STICKERS.map((id) => PRODUCTS.find((p) => p.id === id))
+  const heroImages =
+    heroUploads.length > 0
+      ? heroUploads.slice(0, 5)
+      : HERO_STICKERS.map((id) => PRODUCTS.find((p) => p.id === id).image)
 
   return (
     <>
@@ -32,9 +48,9 @@ export default function Home() {
             </div>
           </div>
           <div className="hero-art" aria-hidden="true">
-            {heroProducts.map((p, i) => (
-              <div key={p.id} className={`hero-sticker hero-sticker-${i + 1}`}>
-                <img src={p.image} alt="" />
+            {heroImages.map((src, i) => (
+              <div key={src} className={`hero-sticker hero-sticker-${i + 1}`}>
+                <img src={src} alt="" />
               </div>
             ))}
           </div>
