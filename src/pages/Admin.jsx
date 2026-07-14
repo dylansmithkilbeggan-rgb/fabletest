@@ -1,0 +1,121 @@
+import { useStore } from '../context/StoreContext.jsx'
+import { formatPrice } from '../utils/format.js'
+
+const STATUS_OPTIONS = [
+  { value: 'new', label: 'New' },
+  { value: 'production', label: 'In production' },
+  { value: 'shipped', label: 'Shipped' },
+]
+
+function formatDate(iso) {
+  return new Date(iso).toLocaleString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+export default function Admin() {
+  const { orders, setOrderStatus } = useStore()
+
+  const revenue = orders.reduce((sum, o) => sum + o.totals.total, 0)
+  const openCount = orders.filter((o) => o.status !== 'shipped').length
+
+  return (
+    <div className="container page">
+      <div className="page-head">
+        <h1>Orders</h1>
+        <p className="muted">
+          Everything placed this session. Orders live in memory in this prototype — a backend
+          would persist them.
+        </p>
+      </div>
+
+      <div className="admin-stats">
+        <div className="card stat">
+          <span className="stat-value">{orders.length}</span>
+          <span className="muted small">Orders</span>
+        </div>
+        <div className="card stat">
+          <span className="stat-value">{openCount}</span>
+          <span className="muted small">Open</span>
+        </div>
+        <div className="card stat">
+          <span className="stat-value">{formatPrice(revenue)}</span>
+          <span className="muted small">Revenue</span>
+        </div>
+      </div>
+
+      {orders.length === 0 ? (
+        <div className="card admin-empty">
+          <p>
+            <strong>No orders yet.</strong>
+          </p>
+          <p className="muted">
+            Place a test order through the shop or designer and it will show up here.
+          </p>
+        </div>
+      ) : (
+        <div className="admin-table-wrap card">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Order</th>
+                <th>Customer</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.map((order) => (
+                <tr key={order.id}>
+                  <td>
+                    <strong>{order.id}</strong>
+                    <div className="muted small">{formatDate(order.placedAt)}</div>
+                  </td>
+                  <td>
+                    {order.shipping.name}
+                    <div className="muted small">{order.shipping.email}</div>
+                    <div className="muted small">
+                      {order.shipping.city}, {order.shipping.country}
+                    </div>
+                  </td>
+                  <td>
+                    <ul className="admin-items">
+                      {order.items.map((item) => (
+                        <li key={item.id}>
+                          <img src={item.thumbnail} alt="" />
+                          <span>
+                            {item.name} × {item.qty}
+                            <span className="muted small"> — {item.detail}</span>
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </td>
+                  <td className="admin-total">{formatPrice(order.totals.total)}</td>
+                  <td>
+                    <select
+                      className={`status-select status-${order.status}`}
+                      value={order.status}
+                      onChange={(e) => setOrderStatus(order.id, e.target.value)}
+                      aria-label={`Status of order ${order.id}`}
+                    >
+                      {STATUS_OPTIONS.map((s) => (
+                        <option key={s.value} value={s.value}>
+                          {s.label}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  )
+}

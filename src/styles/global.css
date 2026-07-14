@@ -1095,6 +1095,240 @@ input[type='range'] {
   font-weight: 600;
 }
 
+/* ---------- Custom car sticker ---------- */
+
+.car-card {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  border-color: var(--accent);
+}
+
+.car-card .sticker-card-art {
+  background:
+    radial-gradient(circle at 70% 20%, var(--accent-soft), transparent 65%),
+    var(--surface-2);
+}
+
+.car-examples {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+.car-examples img {
+  width: 150px;
+  filter: drop-shadow(0 6px 10px rgba(15, 23, 42, 0.2));
+  transform: rotate(-4deg);
+}
+
+.car-examples img + img {
+  transform: rotate(4deg);
+}
+
+.car-examples p {
+  margin: 0;
+}
+
+.photo-drop {
+  border: 2px dashed var(--border);
+  border-radius: 14px;
+  padding: 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.photo-drop:hover,
+.photo-drop:focus-visible {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  outline: none;
+}
+
+.photo-drop p {
+  margin: 0;
+}
+
+.photo-drop.has-photo {
+  padding: 0.75rem;
+}
+
+.photo-drop img {
+  display: block;
+  max-height: 240px;
+  margin: 0 auto 0.5rem;
+  border-radius: 10px;
+}
+
+.field textarea {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  resize: vertical;
+  transition: border-color 0.2s ease, background-color 0.3s ease;
+}
+
+.field textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.size-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.size-option {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 0.7rem 0.9rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.size-option.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.size-option input {
+  accent-color: var(--accent);
+}
+
+.size-option span {
+  flex: 1;
+}
+
+/* ---------- Admin ---------- */
+
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  max-width: 560px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-empty {
+  text-align: center;
+  padding: 3rem 1.5rem;
+}
+
+.admin-table-wrap {
+  overflow-x: auto;
+  padding: 0.5rem;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  min-width: 640px;
+}
+
+.admin-table th {
+  text-align: left;
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.admin-table td {
+  padding: 0.85rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.admin-table tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-total {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.admin-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.admin-items li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-items img {
+  width: 30px;
+  height: 36px;
+  object-fit: contain;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.status-select {
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.status-select.status-new {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.status-select.status-production {
+  border-color: #d97706;
+  color: #d97706;
+}
+
+.status-select.status-shipped {
+  border-color: #16a34a;
+  color: #16a34a;
+}
+
 /* ---------- Confirmation ---------- */
 
 .confirmation-hero {

@@ -12,6 +12,7 @@ export default function Footer() {
           <Link to="/design">Designer</Link>
           <Link to="/shop">Shop</Link>
           <Link to="/about">About</Link>
+          <Link to="/admin">Admin</Link>
         </nav>
       </div>
     </footer>

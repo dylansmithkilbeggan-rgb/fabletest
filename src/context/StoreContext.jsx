@@ -37,14 +37,19 @@ function reducer(state, action) {
       return { ...state, items: state.items.filter((i) => i.id !== action.id) }
     case 'CLEAR_CART':
       return { ...state, items: [] }
-    case 'PLACE_ORDER':
+    case 'PLACE_ORDER': {
+      const order = {
+        ...action.order,
+        status: 'new',
+        items: state.items,
+        totals: cartTotals(state.items),
+      }
+      return { ...state, items: [], lastOrder: order, orders: [order, ...state.orders] }
+    }
+    case 'SET_ORDER_STATUS':
       return {
-        items: [],
-        lastOrder: {
-          ...action.order,
-          items: state.items,
-          totals: cartTotals(state.items),
-        },
+        ...state,
+        orders: state.orders.map((o) => (o.id === action.id ? { ...o, status: action.status } : o)),
       }
     default:
       return state
@@ -52,7 +57,7 @@ function reducer(state, action) {
 }
 
 export function StoreProvider({ children }) {
-  const [state, dispatch] = useReducer(reducer, { items: [], lastOrder: null })
+  const [state, dispatch] = useReducer(reducer, { items: [], orders: [], lastOrder: null })
 
   const api = useMemo(
     () => ({
@@ -83,6 +88,9 @@ export function StoreProvider({ children }) {
           },
         })
       },
+      setOrderStatus(id, status) {
+        dispatch({ type: 'SET_ORDER_STATUS', id, status })
+      },
     }),
     [],
   )
@@ -91,7 +99,14 @@ export function StoreProvider({ children }) {
   const count = useMemo(() => state.items.reduce((n, i) => n + i.qty, 0), [state.items])
 
   const value = useMemo(
-    () => ({ items: state.items, lastOrder: state.lastOrder, totals, count, ...api }),
+    () => ({
+      items: state.items,
+      orders: state.orders,
+      lastOrder: state.lastOrder,
+      totals,
+      count,
+      ...api,
+    }),
     [state, totals, count, api],
   )
 
