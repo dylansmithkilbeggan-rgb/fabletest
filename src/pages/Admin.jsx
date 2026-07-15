@@ -231,7 +231,7 @@ function AddProductForm({ onAdd }) {
   const fileInputRef = useRef(null)
   const [image, setImage] = useState(null)
   const [name, setName] = useState('')
-  const [price, setPrice] = useState('3.00')
+  const [price, setPrice] = useState('0.50')
   const [size, setSize] = useState('7 cm die-cut')
   const [error, setError] = useState(null)
 
@@ -261,7 +261,7 @@ function AddProductForm({ onAdd }) {
     onAdd({ name: name.trim(), price: parsedPrice, size: size.trim(), image, tag: 'New' })
     setImage(null)
     setName('')
-    setPrice('3.00')
+    setPrice('0.50')
     setError(null)
   }
 
@@ -291,7 +291,7 @@ function AddProductForm({ onAdd }) {
           <input id="new-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Retro Wave" />
         </div>
         <div className="field">
-          <label htmlFor="new-price">Price ($)</label>
+          <label htmlFor="new-price">Price (€)</label>
           <input id="new-price" type="number" min="0" step="0.25" value={price} onChange={(e) => setPrice(e.target.value)} />
         </div>
         <div className="field">
@@ -350,7 +350,7 @@ function StockRow({ product, onChange, onRemove }) {
         />
       </div>
       <div className="field">
-        <label htmlFor={`price-${product.id}`}>Price ($)</label>
+        <label htmlFor={`price-${product.id}`}>Price (€)</label>
         <input
           id={`price-${product.id}`}
           type="number"

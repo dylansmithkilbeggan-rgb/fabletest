@@ -1,5 +1,5 @@
 export function formatPrice(value) {
-  return `$${value.toFixed(2)}`
+  return `€${value.toFixed(2)}`
 }
 
 // Physical size readout for the designer — stickers are a real-world product.

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../context/StoreContext.jsx'
 import { formatPrice } from '../utils/format.js'
+import { MIN_PREMADE_QTY } from '../utils/pricing.js'
 
 export default function StickerCard({ product }) {
   const { addItem } = useStore()
@@ -14,7 +15,8 @@ export default function StickerCard({ product }) {
       detail: product.size,
       unitPrice: product.price,
       thumbnail: product.image,
-      qty: 1,
+      qty: MIN_PREMADE_QTY,
+      minQty: MIN_PREMADE_QTY,
     })
     setJustAdded(true)
     setTimeout(() => setJustAdded(false), 1200)
@@ -32,9 +34,12 @@ export default function StickerCard({ product }) {
           <p className="muted">{product.size}</p>
         </div>
         <div className="sticker-card-buy">
-          <span className="price">{formatPrice(product.price)}</span>
+          <span>
+            <span className="price">{formatPrice(product.price)}</span>
+            <span className="muted small"> each · min {MIN_PREMADE_QTY}</span>
+          </span>
           <button type="button" className={`btn btn-primary btn-sm ${justAdded ? 'added' : ''}`} onClick={handleAdd}>
-            {justAdded ? 'Added ✓' : 'Add to cart'}
+            {justAdded ? 'Added ✓' : `Add ${MIN_PREMADE_QTY}`}
           </button>
         </div>
       </div>

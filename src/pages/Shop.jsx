@@ -12,7 +12,8 @@ export default function Shop() {
       <div className="page-head">
         <h1>Shop stickers</h1>
         <p className="muted">
-          Ready-made designs, finished with a clear vinyl seal. Want something of your own?{' '}
+          Ready-made designs, finished with a clear vinyl seal — 50c each, minimum 5 per design.
+          Want something of your own?{' '}
           <Link to="/design" className="text-link">
             Design a custom sheet
           </Link>

@@ -35,7 +35,16 @@ function reducer(state, action) {
     case 'UPDATE_ITEM':
       return {
         ...state,
-        items: state.items.map((i) => (i.id === action.id ? { ...i, ...action.patch } : i)),
+        items: state.items.map((i) => {
+          if (i.id !== action.id) return i
+          const next = { ...i, ...action.patch }
+          // Quantities respect the item's minimum (premade stickers sell
+          // in batches of 5+).
+          if (action.patch.qty !== undefined) {
+            next.qty = Math.max(i.minQty ?? 1, Math.floor(action.patch.qty))
+          }
+          return next
+        }),
       }
     case 'REMOVE_ITEM':
       return { ...state, items: state.items.filter((i) => i.id !== action.id) }
@@ -88,7 +97,7 @@ export function StoreProvider({ children }) {
         dispatch({ type: 'UPDATE_ITEM', id, patch })
       },
       setQty(id, qty) {
-        dispatch({ type: 'UPDATE_ITEM', id, patch: { qty: Math.max(1, Math.floor(qty)) } })
+        dispatch({ type: 'UPDATE_ITEM', id, patch: { qty } })
       },
       removeItem(id) {
         dispatch({ type: 'REMOVE_ITEM', id })

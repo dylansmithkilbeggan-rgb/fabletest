@@ -92,12 +92,12 @@ const art = {
 const toDataUri = (svg) => `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
 
 export const PRODUCTS = [
-  { id: 'sunny', name: 'Sunny Side', price: 3.0, size: '7 cm die-cut', tag: 'Bestseller' },
-  { id: 'bolt', name: 'Blue Bolt', price: 2.5, size: '8 cm die-cut', tag: null },
-  { id: 'planet', name: 'Lil Planet', price: 3.5, size: '8 cm die-cut', tag: 'New' },
-  { id: 'rainbow', name: 'Rainbow Days', price: 3.0, size: '7 cm die-cut', tag: null },
-  { id: 'cat', name: 'Cool Cat', price: 3.5, size: '7 cm die-cut', tag: 'Bestseller' },
-  { id: 'ghost', name: 'Friendly Boo', price: 2.5, size: '7 cm die-cut', tag: null },
-  { id: 'heart', name: 'Big Heart', price: 2.5, size: '6 cm die-cut', tag: null },
-  { id: 'shroom', name: 'Shroomie', price: 3.5, size: '8 cm die-cut', tag: 'New' },
+  { id: 'sunny', name: 'Sunny Side', price: 0.5, size: '7 cm die-cut', tag: 'Bestseller' },
+  { id: 'bolt', name: 'Blue Bolt', price: 0.5, size: '8 cm die-cut', tag: null },
+  { id: 'planet', name: 'Lil Planet', price: 0.5, size: '8 cm die-cut', tag: 'New' },
+  { id: 'rainbow', name: 'Rainbow Days', price: 0.5, size: '7 cm die-cut', tag: null },
+  { id: 'cat', name: 'Cool Cat', price: 0.5, size: '7 cm die-cut', tag: 'Bestseller' },
+  { id: 'ghost', name: 'Friendly Boo', price: 0.5, size: '7 cm die-cut', tag: null },
+  { id: 'heart', name: 'Big Heart', price: 0.5, size: '6 cm die-cut', tag: null },
+  { id: 'shroom', name: 'Shroomie', price: 0.5, size: '8 cm die-cut', tag: 'New' },
 ].map((p) => ({ ...p, image: toDataUri(art[p.id]) }))

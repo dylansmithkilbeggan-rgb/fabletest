@@ -34,9 +34,9 @@ Dark/light mode with a header toggle (persisted to localStorage when available, 
 
 Defined in `src/utils/pricing.js`:
 
-- Custom A4 sheet: **$5.00** plain, or **$7.00** sealed with clear or holographic vinyl
-- Premade stickers: fixed prices in `src/data/products.js`
-- Shipping: flat **$4.00**, free over **$30**
+- Custom A4 sheet: **€5.00** plain, or **€7.00** sealed with clear or holographic vinyl
+- Premade stickers: **€0.50** each, minimum 5 per design (seed prices in `src/data/products.js`)
+- Shipping: flat **€4.00**, free over **€30**
 
 ## Architecture notes
 

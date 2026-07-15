@@ -10,6 +10,10 @@ export const PRICES = {
   freeShippingThreshold: 30,
 }
 
+// Premade shop stickers are sold in batches — you can't order fewer than
+// this many of one design.
+export const MIN_PREMADE_QTY = 5
+
 export const FINISHES = [
   { id: 'clear', label: 'Clear vinyl', price: 7.0, blurb: 'Glossy seal over the print' },
   { id: 'holo', label: 'Holographic vinyl', price: 7.0, blurb: 'Rainbow-shift seal' },

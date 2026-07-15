@@ -21,8 +21,9 @@ export default function About() {
           artwork — that clean white edge that makes a sticker feel like a <em>sticker</em>.
         </p>
         <p>
-          Pricing is simple: <strong>$5 for an A4 page</strong> without vinyl, or{' '}
-          <strong>$7 with a clear or holographic vinyl finish</strong>.
+          Pricing is simple: <strong>€5 for an A4 page</strong> without vinyl, or{' '}
+          <strong>€7 with a clear or holographic vinyl finish</strong>. Premade shop stickers are{' '}
+          <strong>50c each</strong>, minimum 5 per design.
         </p>
         <p>
           The name? A promise: your sticker will stay faithful to your design. Colors, curves and

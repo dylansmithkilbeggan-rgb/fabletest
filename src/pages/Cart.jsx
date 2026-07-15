@@ -50,7 +50,12 @@ export default function Cart() {
               </div>
               <div className="cart-item-actions">
                 <div className="qty-stepper" aria-label={`Quantity of ${item.name}`}>
-                  <button type="button" onClick={() => setQty(item.id, item.qty - 1)} disabled={item.qty <= 1} aria-label="Decrease quantity">
+                  <button
+                    type="button"
+                    onClick={() => setQty(item.id, item.qty - 1)}
+                    disabled={item.qty <= (item.minQty ?? 1)}
+                    aria-label="Decrease quantity"
+                  >
                     −
                   </button>
                   <span>{item.qty}</span>
@@ -58,6 +63,7 @@ export default function Cart() {
                     +
                   </button>
                 </div>
+                {(item.minQty ?? 1) > 1 && <span className="muted small">min {item.minQty}</span>}
                 <span className="price">{formatPrice(item.unitPrice * item.qty)}</span>
                 <button type="button" className="remove-btn" onClick={() => removeItem(item.id)} aria-label={`Remove ${item.name}`}>
                   Remove
