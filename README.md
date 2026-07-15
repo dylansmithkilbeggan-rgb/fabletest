@@ -38,6 +38,25 @@ Defined in `src/utils/pricing.js`:
 - Premade stickers: **€0.50** each, minimum 5 per design (seed prices in `src/data/products.js`)
 - Shipping: flat **€4.00**, free over **€30**
 
+## Connecting Supabase (orders + stock persistence)
+
+1. Create a project at [supabase.com](https://supabase.com) (free tier is fine).
+2. In the dashboard, open **SQL Editor → New query**, paste the contents of
+   `supabase/schema.sql`, and run it. This creates the `products` and `orders` tables.
+3. Copy `.env.example` to `.env.local` and fill in the two values from
+   **Project Settings → API**: the Project URL and the `anon` public key.
+4. Restart `npm run dev`.
+
+That's it — orders placed at checkout are written to Supabase, the admin page loads all
+orders (not just this session's), and stock edits persist. On first run with an empty
+database the built-in catalog is seeded into the `products` table automatically. Without
+`.env.local` the app runs in in-memory mode exactly as before.
+
+**Before launching for real:** the schema ships with open prototype policies — anyone
+with the site's public key could read orders. Replace them with Supabase Auth-based
+policies (and move the admin password to a real login) first. The cart intentionally
+stays in memory; only orders and products persist.
+
 ## Architecture notes
 
 - Cart/order state is held in React memory (`src/context/StoreContext.jsx`) behind a small

@@ -1,24 +1,60 @@
-import { createContext, useContext, useMemo, useReducer } from 'react'
+import { createContext, useContext, useEffect, useMemo, useReducer, useRef } from 'react'
 import { cartTotals } from '../utils/pricing.js'
 import { PRODUCTS as SEED_PRODUCTS } from '../data/products.js'
+import { supabase, supabaseEnabled, logSupabaseError } from '../lib/supabase.js'
 
-// Cart, order and product state lives in React memory on purpose: this
-// prototype may run in sandboxed environments without storage access.
-// Everything goes through the small service-style API below, so a backend
-// (or persisted storage) can replace the reducer later without touching
-// the pages. Products are seeded from the built-in catalog and editable
-// from the admin page.
+// The store keeps all state in React memory and, when Supabase credentials
+// are configured (see src/lib/supabase.js), mirrors orders and products to
+// the database: writes are optimistic (UI updates instantly, then syncs),
+// reads happen once on startup. Without credentials everything still works,
+// nothing persists — the cart is always in-memory either way.
 
 const StoreContext = createContext(null)
 
 let itemSeq = 1
 let productSeq = 1
 
+const productToRow = (p) => ({
+  id: p.id,
+  name: p.name,
+  price: p.price,
+  size: p.size ?? null,
+  tag: p.tag ?? null,
+  image: p.image ?? null,
+})
+
+const rowToProduct = (r) => ({
+  id: r.id,
+  name: r.name,
+  price: Number(r.price),
+  size: r.size ?? '',
+  tag: r.tag ?? null,
+  image: r.image ?? '',
+})
+
+const orderToRow = (o) => ({
+  id: o.id,
+  placed_at: o.placedAt,
+  status: o.status,
+  shipping: o.shipping,
+  items: o.items,
+  totals: o.totals,
+})
+
+const rowToOrder = (r) => ({
+  id: r.id,
+  placedAt: r.placed_at,
+  status: r.status,
+  shipping: r.shipping,
+  items: r.items,
+  totals: r.totals,
+})
+
 function reducer(state, action) {
   switch (action.type) {
     case 'ADD_ITEM': {
       const { item } = action
-      // Premade products merge into one line; custom sheets are always unique.
+      // Premade products merge into one line; custom items are always unique.
       if (item.productId) {
         const existing = state.items.find((i) => i.productId === item.productId)
         if (existing) {
@@ -50,20 +86,22 @@ function reducer(state, action) {
       return { ...state, items: state.items.filter((i) => i.id !== action.id) }
     case 'CLEAR_CART':
       return { ...state, items: [] }
-    case 'PLACE_ORDER': {
-      const order = {
-        ...action.order,
-        status: 'new',
-        items: state.items,
-        totals: cartTotals(state.items),
+    case 'PLACE_ORDER':
+      return {
+        ...state,
+        items: [],
+        lastOrder: action.order,
+        orders: [action.order, ...state.orders],
       }
-      return { ...state, items: [], lastOrder: order, orders: [order, ...state.orders] }
-    }
+    case 'SET_ORDERS':
+      return { ...state, orders: action.orders }
     case 'SET_ORDER_STATUS':
       return {
         ...state,
         orders: state.orders.map((o) => (o.id === action.id ? { ...o, status: action.status } : o)),
       }
+    case 'SET_PRODUCTS':
+      return { ...state, products: action.products }
     case 'ADD_PRODUCT':
       return { ...state, products: [action.product, ...state.products] }
     case 'UPDATE_PRODUCT':
@@ -86,6 +124,49 @@ export function StoreProvider({ children }) {
     products: SEED_PRODUCTS,
   })
 
+  // Latest state for the service API below (its callbacks are memoized once).
+  const stateRef = useRef(state)
+  stateRef.current = state
+
+  // Initial load from Supabase. On a brand-new database the built-in
+  // catalog is seeded in so the shop starts stocked.
+  useEffect(() => {
+    if (!supabaseEnabled) return
+    let cancelled = false
+
+    async function load() {
+      const { data: productRows, error: productError } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false })
+      if (!cancelled && !productError && productRows) {
+        if (productRows.length === 0) {
+          supabase
+            .from('products')
+            .upsert(SEED_PRODUCTS.map(productToRow))
+            .then(logSupabaseError('seed products'))
+        } else {
+          dispatch({ type: 'SET_PRODUCTS', products: productRows.map(rowToProduct) })
+        }
+      }
+      if (productError) console.warn('Supabase load products failed:', productError.message)
+
+      const { data: orderRows, error: orderError } = await supabase
+        .from('orders')
+        .select('*')
+        .order('placed_at', { ascending: false })
+      if (!cancelled && !orderError && orderRows) {
+        dispatch({ type: 'SET_ORDERS', orders: orderRows.map(rowToOrder) })
+      }
+      if (orderError) console.warn('Supabase load orders failed:', orderError.message)
+    }
+
+    load()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   const api = useMemo(
     () => ({
       addItem(item) {
@@ -106,28 +187,57 @@ export function StoreProvider({ children }) {
         dispatch({ type: 'CLEAR_CART' })
       },
       placeOrder(shipping) {
-        dispatch({
-          type: 'PLACE_ORDER',
-          order: {
-            id: `FS-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
-            placedAt: new Date().toISOString(),
-            shipping,
-          },
-        })
+        const items = stateRef.current.items
+        const order = {
+          id: `FS-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
+          placedAt: new Date().toISOString(),
+          status: 'new',
+          shipping,
+          items,
+          totals: cartTotals(items),
+        }
+        dispatch({ type: 'PLACE_ORDER', order })
+        if (supabase) {
+          supabase.from('orders').insert(orderToRow(order)).then(logSupabaseError('insert order'))
+        }
+        return order
       },
       setOrderStatus(id, status) {
         dispatch({ type: 'SET_ORDER_STATUS', id, status })
+        if (supabase) {
+          supabase
+            .from('orders')
+            .update({ status })
+            .eq('id', id)
+            .then(logSupabaseError('update order status'))
+        }
       },
       addProduct(product) {
-        const id = `custom-${productSeq++}`
-        dispatch({ type: 'ADD_PRODUCT', product: { tag: null, ...product, id } })
+        const id = `custom-${Date.now()}-${productSeq++}`
+        const full = { tag: null, ...product, id }
+        dispatch({ type: 'ADD_PRODUCT', product: full })
+        if (supabase) {
+          supabase.from('products').insert(productToRow(full)).then(logSupabaseError('insert product'))
+        }
         return id
       },
       updateProduct(id, patch) {
         dispatch({ type: 'UPDATE_PRODUCT', id, patch })
+        if (supabase) {
+          const current = stateRef.current.products.find((p) => p.id === id)
+          if (current) {
+            supabase
+              .from('products')
+              .upsert(productToRow({ ...current, ...patch }))
+              .then(logSupabaseError('update product'))
+          }
+        }
       },
       removeProduct(id) {
         dispatch({ type: 'REMOVE_PRODUCT', id })
+        if (supabase) {
+          supabase.from('products').delete().eq('id', id).then(logSupabaseError('delete product'))
+        }
       },
     }),
     [],
@@ -142,6 +252,7 @@ export function StoreProvider({ children }) {
       orders: state.orders,
       lastOrder: state.lastOrder,
       products: state.products,
+      persisted: supabaseEnabled,
       totals,
       count,
       ...api,

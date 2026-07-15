@@ -105,15 +105,16 @@ export default function Admin() {
 }
 
 function OrdersPanel() {
-  const { orders, setOrderStatus } = useStore()
+  const { orders, setOrderStatus, persisted } = useStore()
   const revenue = orders.reduce((sum, o) => sum + o.totals.total, 0)
   const openCount = orders.filter((o) => o.status !== 'shipped').length
 
   return (
     <>
       <p className="muted">
-        Everything placed this session. Orders live in memory in this prototype — a backend would
-        persist them.
+        {persisted
+          ? 'All orders, stored in Supabase.'
+          : 'Everything placed this session. Not connected to Supabase, so orders reset on refresh — add your keys to .env.local to persist them.'}
       </p>
       <div className="admin-stats">
         <div className="card stat">
@@ -204,13 +205,15 @@ function OrdersPanel() {
 }
 
 function StockPanel() {
-  const { products, addProduct, updateProduct, removeProduct } = useStore()
+  const { products, addProduct, updateProduct, removeProduct, persisted } = useStore()
 
   return (
     <>
       <p className="muted">
-        These are the stickers customers see in the shop. Changes apply immediately — but live in
-        memory in this prototype, so they reset on refresh until a backend stores them.
+        These are the stickers customers see in the shop. Changes apply immediately
+        {persisted
+          ? ' and are stored in Supabase.'
+          : ' — but reset on refresh until Supabase is connected (add your keys to .env.local).'}
       </p>
       <AddProductForm onAdd={addProduct} />
       <div className="stock-list">
