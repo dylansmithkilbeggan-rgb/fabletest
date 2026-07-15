@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useStore } from '../context/StoreContext.jsx'
 import { formatPrice } from '../utils/format.js'
+import { readImageFileAsDataUrl } from '../utils/images.js'
 
 // Prototype gate only: the check runs in the browser, so it keeps casual
 // visitors out but is NOT real security. A backend must own auth before
@@ -16,6 +17,8 @@ const STATUS_OPTIONS = [
   { value: 'shipped', label: 'Shipped' },
 ]
 
+const TAG_OPTIONS = ['', 'New', 'Bestseller', 'Limited']
+
 function formatDate(iso) {
   return new Date(iso).toLocaleString(undefined, {
     day: 'numeric',
@@ -26,10 +29,10 @@ function formatDate(iso) {
 }
 
 export default function Admin() {
-  const { orders, setOrderStatus } = useStore()
   const [unlocked, setUnlocked] = useState(sessionUnlocked)
   const [password, setPassword] = useState('')
   const [wrongPassword, setWrongPassword] = useState(false)
+  const [tab, setTab] = useState('orders')
 
   function handleUnlock(e) {
     e.preventDefault()
@@ -71,19 +74,47 @@ export default function Admin() {
     )
   }
 
+  return (
+    <div className="container page">
+      <div className="page-head">
+        <h1>Admin</h1>
+        <div className="admin-tabs" role="tablist">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === 'orders'}
+            className={`admin-tab ${tab === 'orders' ? 'active' : ''}`}
+            onClick={() => setTab('orders')}
+          >
+            Orders
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === 'stock'}
+            className={`admin-tab ${tab === 'stock' ? 'active' : ''}`}
+            onClick={() => setTab('stock')}
+          >
+            Stock
+          </button>
+        </div>
+      </div>
+      {tab === 'orders' ? <OrdersPanel /> : <StockPanel />}
+    </div>
+  )
+}
+
+function OrdersPanel() {
+  const { orders, setOrderStatus } = useStore()
   const revenue = orders.reduce((sum, o) => sum + o.totals.total, 0)
   const openCount = orders.filter((o) => o.status !== 'shipped').length
 
   return (
-    <div className="container page">
-      <div className="page-head">
-        <h1>Orders</h1>
-        <p className="muted">
-          Everything placed this session. Orders live in memory in this prototype — a backend
-          would persist them.
-        </p>
-      </div>
-
+    <>
+      <p className="muted">
+        Everything placed this session. Orders live in memory in this prototype — a backend would
+        persist them.
+      </p>
       <div className="admin-stats">
         <div className="card stat">
           <span className="stat-value">{orders.length}</span>
@@ -168,6 +199,192 @@ export default function Admin() {
           </table>
         </div>
       )}
+    </>
+  )
+}
+
+function StockPanel() {
+  const { products, addProduct, updateProduct, removeProduct } = useStore()
+
+  return (
+    <>
+      <p className="muted">
+        These are the stickers customers see in the shop. Changes apply immediately — but live in
+        memory in this prototype, so they reset on refresh until a backend stores them.
+      </p>
+      <AddProductForm onAdd={addProduct} />
+      <div className="stock-list">
+        {products.map((p) => (
+          <StockRow
+            key={p.id}
+            product={p}
+            onChange={(patch) => updateProduct(p.id, patch)}
+            onRemove={() => removeProduct(p.id)}
+          />
+        ))}
+      </div>
+    </>
+  )
+}
+
+function AddProductForm({ onAdd }) {
+  const fileInputRef = useRef(null)
+  const [image, setImage] = useState(null)
+  const [name, setName] = useState('')
+  const [price, setPrice] = useState('3.00')
+  const [size, setSize] = useState('7 cm die-cut')
+  const [error, setError] = useState(null)
+
+  async function handlePhoto(fileList) {
+    const file = Array.from(fileList).find((f) => f.type.startsWith('image/'))
+    if (!file) return
+    setError(null)
+    try {
+      // PNG keeps transparency so die-cut sticker art floats on the card.
+      setImage(await readImageFileAsDataUrl(file, { maxPx: 600, format: 'image/png' }))
+    } catch {
+      setError('That file could not be read as an image.')
+    }
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault()
+    if (!image || !name.trim()) {
+      setError('A photo and a name are required.')
+      return
+    }
+    const parsedPrice = Number(price)
+    if (!Number.isFinite(parsedPrice) || parsedPrice <= 0) {
+      setError('Enter a valid price.')
+      return
+    }
+    onAdd({ name: name.trim(), price: parsedPrice, size: size.trim(), image, tag: 'New' })
+    setImage(null)
+    setName('')
+    setPrice('3.00')
+    setError(null)
+  }
+
+  return (
+    <form className="card stock-add" onSubmit={handleSubmit}>
+      <h2>Add a sticker to the shop</h2>
+      <div className="stock-add-grid">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          hidden
+          onChange={(e) => {
+            handlePhoto(e.target.files)
+            e.target.value = ''
+          }}
+        />
+        <button
+          type="button"
+          className="stock-photo-btn"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          {image ? <img src={image} alt="New sticker" /> : <span>+ Photo</span>}
+        </button>
+        <div className="field">
+          <label htmlFor="new-name">Name</label>
+          <input id="new-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Retro Wave" />
+        </div>
+        <div className="field">
+          <label htmlFor="new-price">Price ($)</label>
+          <input id="new-price" type="number" min="0" step="0.25" value={price} onChange={(e) => setPrice(e.target.value)} />
+        </div>
+        <div className="field">
+          <label htmlFor="new-size">Size / description</label>
+          <input id="new-size" value={size} onChange={(e) => setSize(e.target.value)} />
+        </div>
+        <button type="submit" className="btn btn-primary">
+          Add to shop
+        </button>
+      </div>
+      {error && <p className="field-error">{error}</p>}
+    </form>
+  )
+}
+
+function StockRow({ product, onChange, onRemove }) {
+  const fileInputRef = useRef(null)
+
+  async function handlePhoto(fileList) {
+    const file = Array.from(fileList).find((f) => f.type.startsWith('image/'))
+    if (!file) return
+    try {
+      onChange({ image: await readImageFileAsDataUrl(file, { maxPx: 600, format: 'image/png' }) })
+    } catch {
+      // keep the old photo if the file is unreadable
+    }
+  }
+
+  return (
+    <div className="card stock-row">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        hidden
+        onChange={(e) => {
+          handlePhoto(e.target.files)
+          e.target.value = ''
+        }}
+      />
+      <button
+        type="button"
+        className="stock-photo-btn"
+        onClick={() => fileInputRef.current?.click()}
+        title="Change photo"
+      >
+        <img src={product.image} alt={product.name} />
+        <span className="stock-photo-hint">Change</span>
+      </button>
+      <div className="field">
+        <label htmlFor={`name-${product.id}`}>Name</label>
+        <input
+          id={`name-${product.id}`}
+          value={product.name}
+          onChange={(e) => onChange({ name: e.target.value })}
+        />
+      </div>
+      <div className="field">
+        <label htmlFor={`price-${product.id}`}>Price ($)</label>
+        <input
+          id={`price-${product.id}`}
+          type="number"
+          min="0"
+          step="0.25"
+          value={product.price}
+          onChange={(e) => onChange({ price: Math.max(0, Number(e.target.value) || 0) })}
+        />
+      </div>
+      <div className="field">
+        <label htmlFor={`size-${product.id}`}>Size / description</label>
+        <input
+          id={`size-${product.id}`}
+          value={product.size}
+          onChange={(e) => onChange({ size: e.target.value })}
+        />
+      </div>
+      <div className="field">
+        <label htmlFor={`tag-${product.id}`}>Tag</label>
+        <select
+          id={`tag-${product.id}`}
+          value={product.tag ?? ''}
+          onChange={(e) => onChange({ tag: e.target.value || null })}
+        >
+          {TAG_OPTIONS.map((t) => (
+            <option key={t} value={t}>
+              {t || 'None'}
+            </option>
+          ))}
+        </select>
+      </div>
+      <button type="button" className="btn btn-danger btn-sm" onClick={onRemove}>
+        Remove
+      </button>
     </div>
   )
 }

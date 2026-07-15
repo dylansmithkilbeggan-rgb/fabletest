@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../context/StoreContext.jsx'
 import { formatPrice } from '../utils/format.js'
+import { readImageFileAsDataUrl } from '../utils/images.js'
 import audiExample from '../assets/hero/1-audi.png'
 import gt86Example from '../assets/hero/2-gt86.png'
 
@@ -10,31 +11,6 @@ export const CAR_STICKER_SIZES = [
   { id: 'medium', label: '15 cm wide', price: 13.5 },
   { id: 'large', label: '20 cm wide', price: 17.5 },
 ]
-
-// Scale customer photos down before storing them in the cart — phone photos
-// can be 10MB+ and the order only needs a working reference.
-function readPhotoAsDataUrl(file, maxPx = 900) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onerror = () => reject(new Error('Could not read file'))
-    reader.onload = () => {
-      const img = new Image()
-      img.onerror = () => reject(new Error('Could not load image'))
-      img.onload = () => {
-        const scale = Math.min(1, maxPx / Math.max(img.width, img.height))
-        const canvas = document.createElement('canvas')
-        canvas.width = Math.round(img.width * scale)
-        canvas.height = Math.round(img.height * scale)
-        const ctx = canvas.getContext('2d')
-        ctx.imageSmoothingQuality = 'high'
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-        resolve(canvas.toDataURL('image/jpeg', 0.85))
-      }
-      img.src = reader.result
-    }
-    reader.readAsDataURL(file)
-  })
-}
 
 export default function CustomCarSticker() {
   const { addItem } = useStore()
@@ -56,7 +32,7 @@ export default function CustomCarSticker() {
     }
     setError(null)
     try {
-      setPhoto(await readPhotoAsDataUrl(file))
+      setPhoto(await readImageFileAsDataUrl(file))
     } catch {
       setError('That file could not be read as an image.')
     }

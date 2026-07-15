@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { PRODUCTS } from '../data/products.js'
 import StickerCard from '../components/StickerCard.jsx'
+import { useStore } from '../context/StoreContext.jsx'
 
 // Drop your own sticker photos into src/assets/hero/ (png/jpg/webp/svg) and
 // they replace the placeholder SVGs below automatically — sorted by filename,
@@ -18,6 +19,7 @@ const heroUploads = Object.entries(
 const HERO_STICKERS = ['sunny', 'bolt', 'cat', 'rainbow', 'ghost']
 
 export default function Home() {
+  const { products } = useStore()
   const heroImages =
     heroUploads.length > 0
       ? heroUploads.slice(0, 5)
@@ -86,7 +88,7 @@ export default function Home() {
             </Link>
           </div>
           <div className="shop-grid">
-            {PRODUCTS.slice(0, 4).map((p) => (
+            {products.slice(0, 4).map((p) => (
               <StickerCard key={p.id} product={p} />
             ))}
           </div>

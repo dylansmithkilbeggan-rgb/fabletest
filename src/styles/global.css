@@ -1224,6 +1224,136 @@ input[type='range'] {
   margin: 3rem auto;
 }
 
+.admin-tabs {
+  display: inline-flex;
+  gap: 0.35rem;
+  background: var(--surface-2);
+  border-radius: 999px;
+  padding: 0.3rem;
+  margin-top: 0.5rem;
+}
+
+.admin-tab {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 700;
+  padding: 0.45rem 1.3rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.admin-tab.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.stock-add {
+  margin-bottom: 1.5rem;
+}
+
+.stock-add h2 {
+  font-size: 1.05rem;
+  margin-bottom: 1rem;
+}
+
+.stock-add-grid {
+  display: grid;
+  grid-template-columns: auto 1fr 110px 1fr auto;
+  gap: 0.9rem;
+  align-items: end;
+}
+
+.stock-add-grid .field {
+  margin-bottom: 0;
+}
+
+.stock-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.stock-row {
+  display: grid;
+  grid-template-columns: auto 1.2fr 110px 1.2fr 150px auto;
+  gap: 0.9rem;
+  align-items: end;
+}
+
+.stock-row .field {
+  margin-bottom: 0;
+}
+
+.stock-row select {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.stock-photo-btn {
+  position: relative;
+  width: 76px;
+  height: 76px;
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  background: var(--surface-2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 700;
+  transition: border-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.stock-photo-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.stock-photo-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 4px;
+}
+
+.stock-photo-hint {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-align: center;
+  background: rgba(15, 23, 42, 0.65);
+  color: #fff;
+  padding: 2px 0;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.stock-photo-btn:hover .stock-photo-hint {
+  opacity: 1;
+}
+
+@media (max-width: 860px) {
+  .stock-add-grid,
+  .stock-row {
+    grid-template-columns: auto 1fr 1fr;
+  }
+}
+
 .admin-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

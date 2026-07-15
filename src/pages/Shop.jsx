@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom'
-import { PRODUCTS } from '../data/products.js'
 import StickerCard from '../components/StickerCard.jsx'
 import { CAR_STICKER_SIZES } from './CustomCarSticker.jsx'
 import { formatPrice } from '../utils/format.js'
+import { useStore } from '../context/StoreContext.jsx'
 import carExample from '../assets/hero/2-gt86.png'
 
 export default function Shop() {
+  const { products } = useStore()
   return (
     <div className="container page">
       <div className="page-head">
@@ -35,7 +36,7 @@ export default function Shop() {
             </div>
           </div>
         </Link>
-        {PRODUCTS.map((p) => (
+        {products.map((p) => (
           <StickerCard key={p.id} product={p} />
         ))}
       </div>
