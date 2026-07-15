@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useReducer, useRef } from 'react'
 import { cartTotals } from '../utils/pricing.js'
 import { PRODUCTS as SEED_PRODUCTS } from '../data/products.js'
-import { supabase, supabaseEnabled, logSupabaseError } from '../lib/supabase.js'
+import { supabase, supabaseEnabled, syncToSupabase } from '../lib/supabase.js'
 
 // The store keeps all state in React memory and, when Supabase credentials
 // are configured (see src/lib/supabase.js), mirrors orders and products to
@@ -141,10 +141,10 @@ export function StoreProvider({ children }) {
         .order('created_at', { ascending: false })
       if (!cancelled && !productError && productRows) {
         if (productRows.length === 0) {
-          supabase
-            .from('products')
-            .upsert(SEED_PRODUCTS.map(productToRow))
-            .then(logSupabaseError('seed products'))
+          syncToSupabase(
+            supabase.from('products').upsert(SEED_PRODUCTS.map(productToRow)),
+            'seed products',
+          )
         } else {
           dispatch({ type: 'SET_PRODUCTS', products: productRows.map(rowToProduct) })
         }
@@ -161,7 +161,7 @@ export function StoreProvider({ children }) {
       if (orderError) console.warn('Supabase load orders failed:', orderError.message)
     }
 
-    load()
+    load().catch((err) => console.warn('Supabase initial load failed:', err?.message ?? err))
     return () => {
       cancelled = true
     }
@@ -198,18 +198,17 @@ export function StoreProvider({ children }) {
         }
         dispatch({ type: 'PLACE_ORDER', order })
         if (supabase) {
-          supabase.from('orders').insert(orderToRow(order)).then(logSupabaseError('insert order'))
+          syncToSupabase(supabase.from('orders').insert(orderToRow(order)), 'insert order')
         }
         return order
       },
       setOrderStatus(id, status) {
         dispatch({ type: 'SET_ORDER_STATUS', id, status })
         if (supabase) {
-          supabase
-            .from('orders')
-            .update({ status })
-            .eq('id', id)
-            .then(logSupabaseError('update order status'))
+          syncToSupabase(
+            supabase.from('orders').update({ status }).eq('id', id),
+            'update order status',
+          )
         }
       },
       addProduct(product) {
@@ -217,7 +216,7 @@ export function StoreProvider({ children }) {
         const full = { tag: null, ...product, id }
         dispatch({ type: 'ADD_PRODUCT', product: full })
         if (supabase) {
-          supabase.from('products').insert(productToRow(full)).then(logSupabaseError('insert product'))
+          syncToSupabase(supabase.from('products').insert(productToRow(full)), 'insert product')
         }
         return id
       },
@@ -226,17 +225,17 @@ export function StoreProvider({ children }) {
         if (supabase) {
           const current = stateRef.current.products.find((p) => p.id === id)
           if (current) {
-            supabase
-              .from('products')
-              .upsert(productToRow({ ...current, ...patch }))
-              .then(logSupabaseError('update product'))
+            syncToSupabase(
+              supabase.from('products').upsert(productToRow({ ...current, ...patch })),
+              'update product',
+            )
           }
         }
       },
       removeProduct(id) {
         dispatch({ type: 'REMOVE_PRODUCT', id })
         if (supabase) {
-          supabase.from('products').delete().eq('id', id).then(logSupabaseError('delete product'))
+          syncToSupabase(supabase.from('products').delete().eq('id', id), 'delete product')
         }
       },
     }),
