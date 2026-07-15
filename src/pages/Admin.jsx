@@ -1,14 +1,16 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../context/StoreContext.jsx'
 import { formatPrice } from '../utils/format.js'
 import { readImageFileAsDataUrl } from '../utils/images.js'
+import { supabase, supabaseEnabled } from '../lib/supabase.js'
 
-// Prototype gate only: the check runs in the browser, so it keeps casual
-// visitors out but is NOT real security. A backend must own auth before
-// this page shows real customer data in production.
-const ADMIN_PASSWORD = '21135446'
+// When Supabase is connected, admin access is a real login (Supabase Auth +
+// row-level security — orders and stock writes are refused by the database
+// itself without it). The simple password below only applies in offline /
+// preview mode, where there's no real data to protect.
+const FALLBACK_PASSWORD = '21135446'
 
-// Stays unlocked while the app is open; resets on refresh.
+// Fallback gate stays unlocked while the app is open; resets on refresh.
 let sessionUnlocked = false
 
 const STATUS_OPTIONS = [
@@ -29,55 +31,35 @@ function formatDate(iso) {
 }
 
 export default function Admin() {
-  const [unlocked, setUnlocked] = useState(sessionUnlocked)
-  const [password, setPassword] = useState('')
-  const [wrongPassword, setWrongPassword] = useState(false)
   const [tab, setTab] = useState('orders')
+  const auth = useAdminAuth()
 
-  function handleUnlock(e) {
-    e.preventDefault()
-    if (password === ADMIN_PASSWORD) {
-      sessionUnlocked = true
-      setUnlocked(true)
-    } else {
-      setWrongPassword(true)
-      setPassword('')
-    }
-  }
-
-  if (!unlocked) {
+  if (!auth.ready) {
     return (
       <div className="container page">
-        <form className="card form-section admin-lock" onSubmit={handleUnlock}>
-          <h1>Admin</h1>
-          <p className="muted">This area is for the shop owner.</p>
-          <div className={`field ${wrongPassword ? 'has-error' : ''}`}>
-            <label htmlFor="admin-password">Password</label>
-            <input
-              id="admin-password"
-              type="password"
-              value={password}
-              autoFocus
-              autoComplete="current-password"
-              onChange={(e) => {
-                setPassword(e.target.value)
-                setWrongPassword(false)
-              }}
-            />
-            {wrongPassword && <span className="field-error">Wrong password, try again.</span>}
-          </div>
-          <button type="submit" className="btn btn-primary btn-block">
-            Unlock
-          </button>
-        </form>
+        <p className="muted admin-lock">Checking session…</p>
       </div>
     )
   }
 
+  if (!auth.unlocked) {
+    return supabaseEnabled ? <SupabaseLogin auth={auth} /> : <FallbackLogin auth={auth} />
+  }
+
   return (
     <div className="container page">
+      <div className="page-head admin-head">
+        <div>
+          <h1>Admin</h1>
+          {auth.email && <p className="muted small">Signed in as {auth.email}</p>}
+        </div>
+        {supabaseEnabled && (
+          <button type="button" className="btn btn-ghost btn-sm" onClick={auth.signOut}>
+            Sign out
+          </button>
+        )}
+      </div>
       <div className="page-head">
-        <h1>Admin</h1>
         <div className="admin-tabs" role="tablist">
           <button
             type="button"
@@ -100,6 +82,135 @@ export default function Admin() {
         </div>
       </div>
       {tab === 'orders' ? <OrdersPanel /> : <StockPanel />}
+    </div>
+  )
+}
+
+// Real auth when Supabase is connected; simple password gate otherwise.
+function useAdminAuth() {
+  const [session, setSession] = useState(null)
+  const [ready, setReady] = useState(!supabaseEnabled)
+  const [legacyUnlocked, setLegacyUnlocked] = useState(sessionUnlocked)
+
+  useEffect(() => {
+    if (!supabaseEnabled) return
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        setSession(data.session)
+        setReady(true)
+      })
+      .catch(() => setReady(true))
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => setSession(s))
+    return () => sub.subscription.unsubscribe()
+  }, [])
+
+  return {
+    ready,
+    unlocked: supabaseEnabled ? Boolean(session) : legacyUnlocked,
+    email: session?.user?.email ?? null,
+    unlockLegacy() {
+      sessionUnlocked = true
+      setLegacyUnlocked(true)
+    },
+    async signIn(email, password) {
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      return error?.message ?? null
+    },
+    async signOut() {
+      await supabase.auth.signOut()
+    },
+  }
+}
+
+function SupabaseLogin({ auth }) {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState(null)
+  const [busy, setBusy] = useState(false)
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    setBusy(true)
+    setError(null)
+    const message = await auth.signIn(email.trim(), password)
+    setBusy(false)
+    if (message) setError(message)
+  }
+
+  return (
+    <div className="container page">
+      <form className="card form-section admin-lock" onSubmit={handleSubmit}>
+        <h1>Admin sign in</h1>
+        <p className="muted">This area is for the shop owner.</p>
+        <div className="field">
+          <label htmlFor="admin-email">Email</label>
+          <input
+            id="admin-email"
+            type="email"
+            value={email}
+            autoFocus
+            autoComplete="username"
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+        <div className={`field ${error ? 'has-error' : ''}`}>
+          <label htmlFor="admin-password">Password</label>
+          <input
+            id="admin-password"
+            type="password"
+            value={password}
+            autoComplete="current-password"
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          {error && <span className="field-error">{error}</span>}
+        </div>
+        <button type="submit" className="btn btn-primary btn-block" disabled={busy}>
+          {busy ? 'Signing in…' : 'Sign in'}
+        </button>
+      </form>
+    </div>
+  )
+}
+
+function FallbackLogin({ auth }) {
+  const [password, setPassword] = useState('')
+  const [wrongPassword, setWrongPassword] = useState(false)
+
+  function handleUnlock(e) {
+    e.preventDefault()
+    if (password === FALLBACK_PASSWORD) {
+      auth.unlockLegacy()
+    } else {
+      setWrongPassword(true)
+      setPassword('')
+    }
+  }
+
+  return (
+    <div className="container page">
+      <form className="card form-section admin-lock" onSubmit={handleUnlock}>
+        <h1>Admin</h1>
+        <p className="muted">This area is for the shop owner.</p>
+        <div className={`field ${wrongPassword ? 'has-error' : ''}`}>
+          <label htmlFor="admin-password">Password</label>
+          <input
+            id="admin-password"
+            type="password"
+            value={password}
+            autoFocus
+            autoComplete="current-password"
+            onChange={(e) => {
+              setPassword(e.target.value)
+              setWrongPassword(false)
+            }}
+          />
+          {wrongPassword && <span className="field-error">Wrong password, try again.</span>}
+        </div>
+        <button type="submit" className="btn btn-primary btn-block">
+          Unlock
+        </button>
+      </form>
     </div>
   )
 }

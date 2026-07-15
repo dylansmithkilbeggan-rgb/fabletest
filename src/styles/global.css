@@ -1224,6 +1224,18 @@ input[type='range'] {
   margin: 3rem auto;
 }
 
+.admin-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.admin-head h1 {
+  margin-bottom: 0.1rem;
+}
+
 .admin-tabs {
   display: inline-flex;
   gap: 0.35rem;

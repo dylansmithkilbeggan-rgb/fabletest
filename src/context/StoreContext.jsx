@@ -128,42 +128,56 @@ export function StoreProvider({ children }) {
   const stateRef = useRef(state)
   stateRef.current = state
 
-  // Initial load from Supabase. On a brand-new database the built-in
-  // catalog is seeded in so the shop starts stocked.
+  // Initial load from Supabase. Products are public; orders are guarded by
+  // row-level security, so they only load once the admin signs in (the
+  // client attaches the auth session automatically). On a brand-new
+  // database the built-in catalog is seeded in so the shop starts stocked.
   useEffect(() => {
     if (!supabaseEnabled) return
     let cancelled = false
 
-    async function load() {
-      const { data: productRows, error: productError } = await supabase
+    async function loadProducts() {
+      const { data: rows, error } = await supabase
         .from('products')
         .select('*')
         .order('created_at', { ascending: false })
-      if (!cancelled && !productError && productRows) {
-        if (productRows.length === 0) {
+      if (!cancelled && !error && rows) {
+        if (rows.length === 0) {
           syncToSupabase(
             supabase.from('products').upsert(SEED_PRODUCTS.map(productToRow)),
             'seed products',
           )
         } else {
-          dispatch({ type: 'SET_PRODUCTS', products: productRows.map(rowToProduct) })
+          dispatch({ type: 'SET_PRODUCTS', products: rows.map(rowToProduct) })
         }
       }
-      if (productError) console.warn('Supabase load products failed:', productError.message)
+      if (error) console.warn('Supabase load products failed:', error.message)
+    }
 
-      const { data: orderRows, error: orderError } = await supabase
+    async function loadOrders() {
+      const { data: rows, error } = await supabase
         .from('orders')
         .select('*')
         .order('placed_at', { ascending: false })
-      if (!cancelled && !orderError && orderRows) {
-        dispatch({ type: 'SET_ORDERS', orders: orderRows.map(rowToOrder) })
+      if (!cancelled && !error && rows) {
+        dispatch({ type: 'SET_ORDERS', orders: rows.map(rowToOrder) })
       }
-      if (orderError) console.warn('Supabase load orders failed:', orderError.message)
+      if (error) console.warn('Supabase load orders failed:', error.message)
     }
 
-    load().catch((err) => console.warn('Supabase initial load failed:', err?.message ?? err))
+    loadProducts().catch((err) => console.warn('Supabase load products failed:', err?.message ?? err))
+
+    const { data: authSub } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        loadOrders().catch((err) => console.warn('Supabase load orders failed:', err?.message ?? err))
+      } else if (!cancelled) {
+        dispatch({ type: 'SET_ORDERS', orders: [] })
+      }
+    })
+
     return () => {
       cancelled = true
+      authSub.subscription.unsubscribe()
     }
   }, [])
 

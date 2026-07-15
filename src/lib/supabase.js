@@ -14,7 +14,11 @@ const DEFAULT_ANON_KEY =
 const url = import.meta.env.VITE_SUPABASE_URL || DEFAULT_URL
 const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || DEFAULT_ANON_KEY
 
-export const supabase = url && anonKey ? createClient(url, anonKey) : null
+// VITE_SUPABASE_DISABLED=true builds a fully offline copy (used for the
+// sandboxed shareable preview, where outside connections are blocked).
+const disabled = import.meta.env.VITE_SUPABASE_DISABLED === 'true'
+
+export const supabase = !disabled && url && anonKey ? createClient(url, anonKey) : null
 export const supabaseEnabled = Boolean(supabase)
 
 // Log-and-continue error handling: the UI already updated optimistically,
