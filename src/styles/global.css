@@ -1481,6 +1481,138 @@ input[type='range'] {
   color: #16a34a;
 }
 
+/* ---------- Admin order detail ---------- */
+
+.order-row {
+  cursor: pointer;
+}
+
+.order-row:hover td {
+  background: var(--surface-2);
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(8, 12, 24, 0.6);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 2.5rem 1rem;
+  overflow-y: auto;
+}
+
+.order-modal {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  width: min(880px, 100%);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+}
+
+.order-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.order-modal-head h2 {
+  margin-bottom: 0.15rem;
+}
+
+.order-modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.order-modal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.order-section h3 {
+  margin-bottom: 0.6rem;
+}
+
+.order-address {
+  line-height: 1.7;
+}
+
+.order-items-title {
+  margin-bottom: 0.9rem;
+}
+
+.order-item {
+  margin-bottom: 1rem;
+}
+
+.order-item-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.order-assets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.asset {
+  margin: 0;
+  width: 160px;
+}
+
+.asset img {
+  width: 100%;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 6px;
+}
+
+.asset-sheet {
+  width: 220px;
+}
+
+.asset figcaption {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 0.35rem;
+}
+
+.asset figcaption strong {
+  color: var(--text);
+}
+
+.commission-notes {
+  flex: 1;
+  min-width: 200px;
+}
+
+@media (max-width: 700px) {
+  .order-modal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-backdrop {
+    padding: 1rem 0.5rem;
+  }
+}
+
 /* ---------- Confirmation ---------- */
 
 .confirmation-hero {

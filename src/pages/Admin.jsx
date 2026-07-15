@@ -3,6 +3,7 @@ import { useStore } from '../context/StoreContext.jsx'
 import { formatPrice } from '../utils/format.js'
 import { readImageFileAsDataUrl } from '../utils/images.js'
 import { supabase, supabaseEnabled } from '../lib/supabase.js'
+import AdminOrderDetail, { ORDER_STATUS_OPTIONS } from './AdminOrderDetail.jsx'
 
 // When Supabase is connected, admin access is a real login (Supabase Auth +
 // row-level security — orders and stock writes are refused by the database
@@ -12,12 +13,6 @@ const FALLBACK_PASSWORD = '21135446'
 
 // Fallback gate stays unlocked while the app is open; resets on refresh.
 let sessionUnlocked = false
-
-const STATUS_OPTIONS = [
-  { value: 'new', label: 'New' },
-  { value: 'production', label: 'In production' },
-  { value: 'shipped', label: 'Shipped' },
-]
 
 const TAG_OPTIONS = ['', 'New', 'Bestseller', 'Limited']
 
@@ -217,8 +212,10 @@ function FallbackLogin({ auth }) {
 
 function OrdersPanel() {
   const { orders, setOrderStatus, persisted } = useStore()
+  const [openOrderId, setOpenOrderId] = useState(null)
   const revenue = orders.reduce((sum, o) => sum + o.totals.total, 0)
   const openCount = orders.filter((o) => o.status !== 'shipped').length
+  const openOrder = orders.find((o) => o.id === openOrderId) ?? null
 
   return (
     <>
@@ -265,10 +262,16 @@ function OrdersPanel() {
             </thead>
             <tbody>
               {orders.map((order) => (
-                <tr key={order.id}>
+                <tr
+                  key={order.id}
+                  className="order-row"
+                  onClick={() => setOpenOrderId(order.id)}
+                  title="Click to see the full order"
+                >
                   <td>
                     <strong>{order.id}</strong>
                     <div className="muted small">{formatDate(order.placedAt)}</div>
+                    <span className="text-link small">View details</span>
                   </td>
                   <td>
                     {order.shipping.name}
@@ -291,14 +294,14 @@ function OrdersPanel() {
                     </ul>
                   </td>
                   <td className="admin-total">{formatPrice(order.totals.total)}</td>
-                  <td>
+                  <td onClick={(e) => e.stopPropagation()}>
                     <select
                       className={`status-select status-${order.status}`}
                       value={order.status}
                       onChange={(e) => setOrderStatus(order.id, e.target.value)}
                       aria-label={`Status of order ${order.id}`}
                     >
-                      {STATUS_OPTIONS.map((s) => (
+                      {ORDER_STATUS_OPTIONS.map((s) => (
                         <option key={s.value} value={s.value}>
                           {s.label}
                         </option>
@@ -310,6 +313,13 @@ function OrdersPanel() {
             </tbody>
           </table>
         </div>
+      )}
+      {openOrder && (
+        <AdminOrderDetail
+          order={openOrder}
+          onClose={() => setOpenOrderId(null)}
+          onStatusChange={(status) => setOrderStatus(openOrder.id, status)}
+        />
       )}
     </>
   )
