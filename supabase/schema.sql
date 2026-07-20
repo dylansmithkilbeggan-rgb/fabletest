@@ -12,11 +12,14 @@ create table if not exists public.products (
   image text,
   -- 'sticker' (single die-cut) or 'sheet' (premade A4 sheet)
   kind text not null default 'sticker',
+  -- extra gallery photos (array of data URLs) shown on the product page
+  images jsonb not null default '[]'::jsonb,
   created_at timestamptz not null default now()
 );
 
--- Migration for databases created before `kind` existed.
+-- Migrations for databases created before these columns existed.
 alter table public.products add column if not exists kind text not null default 'sticker';
+alter table public.products add column if not exists images jsonb not null default '[]'::jsonb;
 
 -- Orders. shipping/items/totals are stored as JSON exactly as the app
 -- builds them, so the admin page can render them without any mapping.

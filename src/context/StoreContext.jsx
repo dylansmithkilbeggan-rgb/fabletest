@@ -22,6 +22,7 @@ const productToRow = (p) => ({
   tag: p.tag ?? null,
   image: p.image ?? null,
   kind: p.kind ?? 'sticker',
+  images: p.images ?? [],
 })
 
 const rowToProduct = (r) => ({
@@ -32,6 +33,7 @@ const rowToProduct = (r) => ({
   tag: r.tag ?? null,
   image: r.image ?? '',
   kind: r.kind ?? 'sticker',
+  images: Array.isArray(r.images) ? r.images : [],
 })
 
 const orderToRow = (o) => ({

@@ -1,14 +1,17 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useStore } from '../context/StoreContext.jsx'
 import { formatPrice } from '../utils/format.js'
 import { MIN_PREMADE_QTY } from '../utils/pricing.js'
 
 export default function StickerCard({ product }) {
   const { addItem } = useStore()
+  const navigate = useNavigate()
   const [justAdded, setJustAdded] = useState(false)
   const isSheet = product.kind === 'sheet'
 
-  function handleAdd() {
+  function handleAdd(e) {
+    e.stopPropagation()
     addItem({
       productId: product.id,
       type: isSheet ? 'premade-sheet' : 'premade',
@@ -23,7 +26,11 @@ export default function StickerCard({ product }) {
   }
 
   return (
-    <article className="sticker-card">
+    <article
+      className="sticker-card sticker-card-clickable"
+      onClick={() => navigate(`/product/${product.id}`)}
+      title={`See ${product.name}`}
+    >
       {product.tag && <span className="sticker-tag">{product.tag}</span>}
       <div className="sticker-card-art">
         <img src={product.image} alt={`${product.name} ${isSheet ? 'sheet' : 'sticker'}`} loading="lazy" />

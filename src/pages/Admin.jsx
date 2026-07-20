@@ -465,6 +465,8 @@ function AddProductForm({ onAdd }) {
 
 function StockRow({ product, onChange, onRemove }) {
   const fileInputRef = useRef(null)
+  const galleryInputRef = useRef(null)
+  const images = product.images ?? []
 
   async function handlePhoto(fileList) {
     const file = Array.from(fileList).find((f) => f.type.startsWith('image/'))
@@ -474,6 +476,20 @@ function StockRow({ product, onChange, onRemove }) {
     } catch {
       // keep the old photo if the file is unreadable
     }
+  }
+
+  async function handleGalleryPhotos(fileList) {
+    const files = Array.from(fileList).filter((f) => f.type.startsWith('image/'))
+    if (files.length === 0) return
+    const added = []
+    for (const file of files) {
+      try {
+        added.push(await readImageFileAsDataUrl(file, { maxPx: 600, format: 'image/png' }))
+      } catch {
+        // skip unreadable files
+      }
+    }
+    if (added.length > 0) onChange({ images: [...images, ...added] })
   }
 
   return (
@@ -552,6 +568,41 @@ function StockRow({ product, onChange, onRemove }) {
       <button type="button" className="btn btn-danger btn-sm" onClick={onRemove}>
         Remove
       </button>
+      <div className="stock-gallery">
+        <span className="muted small">Extra photos (shown on the sticker’s page):</span>
+        <input
+          ref={galleryInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          hidden
+          onChange={(e) => {
+            handleGalleryPhotos(e.target.files)
+            e.target.value = ''
+          }}
+        />
+        <div className="stock-gallery-thumbs">
+          {images.map((src, i) => (
+            <span key={i} className="stock-gallery-thumb">
+              <img src={src} alt={`Extra photo ${i + 1}`} />
+              <button
+                type="button"
+                aria-label={`Remove extra photo ${i + 1}`}
+                onClick={() => onChange({ images: images.filter((_, j) => j !== i) })}
+              >
+                ✕
+              </button>
+            </span>
+          ))}
+          <button
+            type="button"
+            className="stock-gallery-add"
+            onClick={() => galleryInputRef.current?.click()}
+          >
+            + Add
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

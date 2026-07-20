@@ -9,6 +9,7 @@ import Checkout from './pages/Checkout.jsx'
 import OrderConfirmation from './pages/OrderConfirmation.jsx'
 import About from './pages/About.jsx'
 import CustomCarSticker from './pages/CustomCarSticker.jsx'
+import ProductDetail from './pages/ProductDetail.jsx'
 import Admin from './pages/Admin.jsx'
 import DesignerPage from './designer/DesignerPage.jsx'
 
@@ -30,6 +31,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/design" element={<DesignerPage />} />
           <Route path="/shop" element={<Shop />} />
+          <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/car-sticker" element={<CustomCarSticker />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/cart" element={<Cart />} />
