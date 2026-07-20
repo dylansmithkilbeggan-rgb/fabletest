@@ -15,8 +15,7 @@ export default function StickerCard({ product }) {
       detail: product.size,
       unitPrice: product.price,
       thumbnail: product.image,
-      qty: MIN_PREMADE_QTY,
-      minQty: MIN_PREMADE_QTY,
+      qty: 1,
     })
     setJustAdded(true)
     setTimeout(() => setJustAdded(false), 1200)
@@ -36,10 +35,10 @@ export default function StickerCard({ product }) {
         <div className="sticker-card-buy">
           <span>
             <span className="price">{formatPrice(product.price)}</span>
-            <span className="muted small"> each · min {MIN_PREMADE_QTY}</span>
+            <span className="muted small"> each · min {MIN_PREMADE_QTY} total</span>
           </span>
           <button type="button" className={`btn btn-primary btn-sm ${justAdded ? 'added' : ''}`} onClick={handleAdd}>
-            {justAdded ? 'Added ✓' : `Add ${MIN_PREMADE_QTY}`}
+            {justAdded ? 'Added ✓' : 'Add to cart'}
           </button>
         </div>
       </div>

@@ -23,7 +23,7 @@ export default function About() {
         <p>
           Pricing is simple: <strong>€5 for an A4 page</strong> without vinyl, or{' '}
           <strong>€7 with a clear or holographic vinyl finish</strong>. Premade shop stickers are{' '}
-          <strong>50c each</strong>, minimum 5 per design.
+          <strong>50c each</strong>, minimum 5 stickers per order — mix and match designs.
         </p>
         <p>
           The name? A promise: your sticker will stay faithful to your design. Colors, curves and

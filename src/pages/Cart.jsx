@@ -1,11 +1,12 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useStore } from '../context/StoreContext.jsx'
 import { formatPrice } from '../utils/format.js'
-import { PRICES } from '../utils/pricing.js'
+import { MIN_PREMADE_QTY, PRICES, premadeShortfall } from '../utils/pricing.js'
 
 export default function Cart() {
   const { items, totals, setQty, removeItem } = useStore()
   const navigate = useNavigate()
+  const shortfall = premadeShortfall(items)
 
   if (items.length === 0) {
     return (
@@ -53,7 +54,7 @@ export default function Cart() {
                   <button
                     type="button"
                     onClick={() => setQty(item.id, item.qty - 1)}
-                    disabled={item.qty <= (item.minQty ?? 1)}
+                    disabled={item.qty <= 1}
                     aria-label="Decrease quantity"
                   >
                     −
@@ -63,7 +64,6 @@ export default function Cart() {
                     +
                   </button>
                 </div>
-                {(item.minQty ?? 1) > 1 && <span className="muted small">min {item.minQty}</span>}
                 <span className="price">{formatPrice(item.unitPrice * item.qty)}</span>
                 <button type="button" className="remove-btn" onClick={() => removeItem(item.id)} aria-label={`Remove ${item.name}`}>
                   Remove
@@ -92,9 +92,21 @@ export default function Cart() {
             <span>Total</span>
             <span>{formatPrice(totals.total)}</span>
           </div>
-          <Link to="/checkout" className="btn btn-primary btn-block">
-            Checkout
-          </Link>
+          {shortfall > 0 && (
+            <p className="cart-warning small">
+              Premade stickers are a minimum of {MIN_PREMADE_QTY} per order (any mix of designs) —
+              add {shortfall} more to check out.
+            </p>
+          )}
+          {shortfall > 0 ? (
+            <button type="button" className="btn btn-primary btn-block" disabled>
+              Checkout
+            </button>
+          ) : (
+            <Link to="/checkout" className="btn btn-primary btn-block">
+              Checkout
+            </Link>
+          )}
         </aside>
       </div>
     </div>

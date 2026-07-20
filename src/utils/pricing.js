@@ -10,9 +10,18 @@ export const PRICES = {
   freeShippingThreshold: 30,
 }
 
-// Premade shop stickers are sold in batches — you can't order fewer than
-// this many of one design.
+// Premade shop stickers have an order-wide minimum: at least this many
+// stickers in total, mixing designs freely.
 export const MIN_PREMADE_QTY = 5
+
+// How many more premade stickers are needed to reach the order minimum.
+// Zero when the cart has none at all, or already has enough.
+export function premadeShortfall(items) {
+  const count = items
+    .filter((i) => i.type === 'premade')
+    .reduce((n, i) => n + i.qty, 0)
+  return count === 0 ? 0 : Math.max(0, MIN_PREMADE_QTY - count)
+}
 
 export const FINISHES = [
   { id: 'clear', label: 'Clear vinyl', price: 7.0, blurb: 'Glossy seal over the print' },

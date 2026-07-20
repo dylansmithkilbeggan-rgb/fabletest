@@ -976,6 +976,15 @@ input[type='range'] {
   top: 84px;
 }
 
+.cart-warning {
+  margin: 0.6rem 0;
+  padding: 0.55rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--danger) 40%, transparent);
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+  color: var(--danger);
+}
+
 .summary-row {
   display: flex;
   justify-content: space-between;

@@ -74,10 +74,8 @@ function reducer(state, action) {
         items: state.items.map((i) => {
           if (i.id !== action.id) return i
           const next = { ...i, ...action.patch }
-          // Quantities respect the item's minimum (premade stickers sell
-          // in batches of 5+).
           if (action.patch.qty !== undefined) {
-            next.qty = Math.max(i.minQty ?? 1, Math.floor(action.patch.qty))
+            next.qty = Math.max(1, Math.floor(action.patch.qty))
           }
           return next
         }),

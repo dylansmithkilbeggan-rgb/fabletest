@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useStore } from '../context/StoreContext.jsx'
 import { formatPrice } from '../utils/format.js'
+import { premadeShortfall } from '../utils/pricing.js'
 
 const REQUIRED_FIELDS = ['name', 'email', 'address1', 'city', 'postcode', 'country']
 
@@ -22,7 +23,7 @@ export default function Checkout() {
   const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
 
-  if (items.length === 0 && !submitting) {
+  if ((items.length === 0 || premadeShortfall(items) > 0) && !submitting) {
     return <Navigate to="/cart" replace />
   }
 
