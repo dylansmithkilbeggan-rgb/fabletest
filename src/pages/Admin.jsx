@@ -211,8 +211,16 @@ function FallbackLogin({ auth }) {
 }
 
 function OrdersPanel() {
-  const { orders, setOrderStatus, persisted } = useStore()
+  const { orders, setOrderStatus, clearOrders, persisted } = useStore()
   const [openOrderId, setOpenOrderId] = useState(null)
+
+  function handleClearAll() {
+    const ok = window.confirm(
+      `Delete all ${orders.length} order${orders.length === 1 ? '' : 's'} permanently? ` +
+        'This cannot be undone.',
+    )
+    if (ok) clearOrders()
+  }
   const revenue = orders.reduce((sum, o) => sum + o.totals.total, 0)
   const openCount = orders.filter((o) => o.status !== 'shipped').length
   const openOrder = orders.find((o) => o.id === openOrderId) ?? null
@@ -312,6 +320,16 @@ function OrdersPanel() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+      {orders.length > 0 && (
+        <div className="admin-danger-zone">
+          <button type="button" className="btn btn-danger btn-sm" onClick={handleClearAll}>
+            Clear all orders
+          </button>
+          <span className="muted small">
+            Deletes every order permanently and resets the stats to zero.
+          </span>
         </div>
       )}
       {openOrder && (

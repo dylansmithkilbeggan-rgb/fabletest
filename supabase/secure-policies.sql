@@ -26,6 +26,7 @@ drop policy if exists "admin manages products" on public.products;
 drop policy if exists "anyone can place an order" on public.orders;
 drop policy if exists "admin reads orders" on public.orders;
 drop policy if exists "admin updates orders" on public.orders;
+drop policy if exists "admin deletes orders" on public.orders;
 
 -- PRODUCTS: the whole world can browse the shop; only the logged-in
 -- admin can add, edit or remove stock.
@@ -38,7 +39,7 @@ create policy "admin manages products" on public.products
   with check ((auth.jwt() ->> 'email') = 'dylansmithkilbeggan@gmail.com');
 
 -- ORDERS: anyone can place one (that's checkout), but only the admin can
--- see them or change their status. Nobody can delete orders.
+-- see them, change their status, or delete them.
 create policy "anyone can place an order" on public.orders
   for insert to anon, authenticated with check (true);
 
@@ -50,3 +51,7 @@ create policy "admin updates orders" on public.orders
   for update to authenticated
   using ((auth.jwt() ->> 'email') = 'dylansmithkilbeggan@gmail.com')
   with check ((auth.jwt() ->> 'email') = 'dylansmithkilbeggan@gmail.com');
+
+create policy "admin deletes orders" on public.orders
+  for delete to authenticated
+  using ((auth.jwt() ->> 'email') = 'dylansmithkilbeggan@gmail.com');

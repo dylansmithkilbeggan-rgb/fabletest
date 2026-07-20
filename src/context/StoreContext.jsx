@@ -227,6 +227,13 @@ export function StoreProvider({ children }) {
           )
         }
       },
+      clearOrders() {
+        dispatch({ type: 'SET_ORDERS', orders: [] })
+        if (supabase) {
+          // Delete-all needs a filter in PostgREST; match every non-empty id.
+          syncToSupabase(supabase.from('orders').delete().neq('id', ''), 'clear orders')
+        }
+      },
       addProduct(product) {
         const id = `custom-${Date.now()}-${productSeq++}`
         const full = { tag: null, ...product, id }
