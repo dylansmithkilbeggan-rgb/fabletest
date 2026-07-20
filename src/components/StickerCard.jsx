@@ -27,7 +27,7 @@ export default function StickerCard({ product }) {
 
   return (
     <article
-      className="sticker-card sticker-card-clickable"
+      className={`sticker-card sticker-card-clickable ${isSheet ? 'sticker-card-tall' : ''}`}
       onClick={() => navigate(`/product/${product.id}`)}
       title={`See ${product.name}`}
     >

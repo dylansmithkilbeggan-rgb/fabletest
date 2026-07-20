@@ -592,8 +592,16 @@ a {
 .sticker-card-art img {
   width: 130px;
   height: 130px;
+  object-fit: contain;
   transition: transform 0.25s ease;
   filter: drop-shadow(0 6px 10px rgba(15, 23, 42, 0.18));
+}
+
+/* Premade sheets are tall A4 pages — give them room to keep their shape. */
+.sticker-card-tall .sticker-card-art img {
+  height: 175px;
+  width: auto;
+  max-width: 100%;
 }
 
 .sticker-card:hover .sticker-card-art img {
@@ -1544,6 +1552,7 @@ input[type='range'] {
 .stock-photo-btn img {
   width: 100%;
   height: 100%;
+  object-fit: contain;
   object-fit: contain;
   padding: 4px;
 }
