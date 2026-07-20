@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { PRODUCTS } from '../data/products.js'
 import StickerCard from '../components/StickerCard.jsx'
 import { useStore } from '../context/StoreContext.jsx'
+import logoLarge from '../assets/logo/logo-large.png'
 
 // Drop your own sticker photos into src/assets/hero/ (png/jpg/webp/svg) and
 // they replace the placeholder SVGs below automatically — sorted by filename,
@@ -30,7 +31,7 @@ export default function Home() {
       <section className="hero">
         <div className="container hero-inner">
           <div className="hero-copy">
-            <span className="hero-eyebrow">Custom die-cut stickers</span>
+            <img src={logoLarge} alt="Faithfull Stickers" className="hero-logo" />
             <h1>
               Your art, cut to shape,
               <br />
