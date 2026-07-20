@@ -191,9 +191,9 @@ function ItemDetail({ item }) {
         </div>
       )}
 
-      {item.type === 'premade' && (
+      {(item.type === 'premade' || item.type === 'premade-sheet') && (
         <div className="order-assets">
-          <figure className="asset">
+          <figure className={item.type === 'premade-sheet' ? 'asset asset-sheet' : 'asset'}>
             <img src={item.thumbnail} alt={item.name} />
             <figcaption>
               <span>

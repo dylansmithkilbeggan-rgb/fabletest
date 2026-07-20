@@ -91,6 +91,23 @@ const art = {
 
 const toDataUri = (svg) => `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
 
+// A premade A4 sheet preview: a white portrait page with a grid of designs.
+const sheetArt = (ids) => {
+  const cells = ids
+    .map((id, i) => {
+      const x = 22 + (i % 2) * 88
+      const y = 24 + Math.floor(i / 2) * 88
+      return `<image href="${toDataUri(art[id])}" x="${x}" y="${y}" width="78" height="78"/>`
+    })
+    .join('')
+  return toDataUri(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 297">` +
+      `<rect x="2" y="2" width="206" height="293" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="2"/>` +
+      cells +
+      `</svg>`,
+  )
+}
+
 export const PRODUCTS = [
   { id: 'sunny', name: 'Sunny Side', price: 0.5, size: '7 cm die-cut', tag: 'Bestseller' },
   { id: 'bolt', name: 'Blue Bolt', price: 0.5, size: '8 cm die-cut', tag: null },
@@ -100,4 +117,25 @@ export const PRODUCTS = [
   { id: 'ghost', name: 'Friendly Boo', price: 0.5, size: '7 cm die-cut', tag: null },
   { id: 'heart', name: 'Big Heart', price: 0.5, size: '6 cm die-cut', tag: null },
   { id: 'shroom', name: 'Shroomie', price: 0.5, size: '8 cm die-cut', tag: 'New' },
-].map((p) => ({ ...p, image: toDataUri(art[p.id]) }))
+]
+  .map((p) => ({ ...p, kind: 'sticker', image: toDataUri(art[p.id]) }))
+  .concat([
+    {
+      id: 'sheet-best-of',
+      name: 'Best of Faithfull',
+      price: 5,
+      size: 'A4 sheet · 6 stickers',
+      tag: 'Bestseller',
+      kind: 'sheet',
+      image: sheetArt(['sunny', 'bolt', 'planet', 'cat', 'ghost', 'shroom']),
+    },
+    {
+      id: 'sheet-good-vibes',
+      name: 'Good Vibes',
+      price: 5,
+      size: 'A4 sheet · 4 stickers',
+      tag: 'New',
+      kind: 'sheet',
+      image: sheetArt(['rainbow', 'heart', 'sunny', 'ghost']),
+    },
+  ])

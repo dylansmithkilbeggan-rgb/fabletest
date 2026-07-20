@@ -7,6 +7,8 @@ import carExample from '../assets/hero/2-gt86.png'
 
 export default function Shop() {
   const { products } = useStore()
+  const stickers = products.filter((p) => p.kind !== 'sheet')
+  const sheets = products.filter((p) => p.kind === 'sheet')
   return (
     <div className="container page">
       <div className="page-head">
@@ -21,7 +23,24 @@ export default function Shop() {
           .
         </p>
       </div>
-      <div className="shop-grid">
+      {sheets.length > 0 && (
+        <section className="shop-section">
+          <div className="section-head">
+            <h2>Premade sheets</h2>
+            <p className="muted">Full A4 sheets of our designs — €5 a sheet, no minimum.</p>
+          </div>
+          <div className="shop-grid">
+            {sheets.map((p) => (
+              <StickerCard key={p.id} product={p} />
+            ))}
+          </div>
+        </section>
+      )}
+      <section className="shop-section">
+        <div className="section-head">
+          <h2>Single stickers</h2>
+        </div>
+        <div className="shop-grid">
         <Link to="/car-sticker" className="sticker-card car-card">
           <span className="sticker-tag">Custom</span>
           <div className="sticker-card-art">
@@ -38,10 +57,11 @@ export default function Shop() {
             </div>
           </div>
         </Link>
-        {products.map((p) => (
-          <StickerCard key={p.id} product={p} />
-        ))}
-      </div>
+          {stickers.map((p) => (
+            <StickerCard key={p.id} product={p} />
+          ))}
+        </div>
+      </section>
     </div>
   )
 }

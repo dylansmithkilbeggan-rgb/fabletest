@@ -337,16 +337,28 @@ function StockPanel() {
           : ' — but reset on refresh until Supabase is connected (add your keys to .env.local).'}
       </p>
       <AddProductForm onAdd={addProduct} />
-      <div className="stock-list">
-        {products.map((p) => (
-          <StockRow
-            key={p.id}
-            product={p}
-            onChange={(patch) => updateProduct(p.id, patch)}
-            onRemove={() => removeProduct(p.id)}
-          />
-        ))}
-      </div>
+      {[
+        { kind: 'sheet', title: 'Premade A4 sheets' },
+        { kind: 'sticker', title: 'Single stickers' },
+      ].map(({ kind, title }) => {
+        const group = products.filter((p) => (p.kind ?? 'sticker') === kind)
+        if (group.length === 0) return null
+        return (
+          <div key={kind}>
+            <h2 className="stock-group-title">{title}</h2>
+            <div className="stock-list">
+              {group.map((p) => (
+                <StockRow
+                  key={p.id}
+                  product={p}
+                  onChange={(patch) => updateProduct(p.id, patch)}
+                  onRemove={() => removeProduct(p.id)}
+                />
+              ))}
+            </div>
+          </div>
+        )
+      })}
     </>
   )
 }
@@ -355,9 +367,22 @@ function AddProductForm({ onAdd }) {
   const fileInputRef = useRef(null)
   const [image, setImage] = useState(null)
   const [name, setName] = useState('')
+  const [kind, setKind] = useState('sticker')
   const [price, setPrice] = useState('0.50')
   const [size, setSize] = useState('7 cm die-cut')
   const [error, setError] = useState(null)
+
+  function handleKind(nextKind) {
+    setKind(nextKind)
+    // Sensible defaults per type; still editable before adding.
+    if (nextKind === 'sheet') {
+      setPrice('5.00')
+      setSize('A4 sheet')
+    } else {
+      setPrice('0.50')
+      setSize('7 cm die-cut')
+    }
+  }
 
   async function handlePhoto(fileList) {
     const file = Array.from(fileList).find((f) => f.type.startsWith('image/'))
@@ -382,17 +407,24 @@ function AddProductForm({ onAdd }) {
       setError('Enter a valid price.')
       return
     }
-    onAdd({ name: name.trim(), price: parsedPrice, size: size.trim(), image, tag: 'New' })
+    onAdd({ name: name.trim(), price: parsedPrice, size: size.trim(), image, tag: 'New', kind })
     setImage(null)
     setName('')
-    setPrice('0.50')
+    setPrice(kind === 'sheet' ? '5.00' : '0.50')
     setError(null)
   }
 
   return (
     <form className="card stock-add" onSubmit={handleSubmit}>
-      <h2>Add a sticker to the shop</h2>
+      <h2>Add to the shop</h2>
       <div className="stock-add-grid">
+        <div className="field">
+          <label htmlFor="new-kind">Type</label>
+          <select id="new-kind" value={kind} onChange={(e) => handleKind(e.target.value)}>
+            <option value="sticker">Single sticker</option>
+            <option value="sheet">Premade A4 sheet</option>
+          </select>
+        </div>
         <input
           ref={fileInputRef}
           type="file"
@@ -504,6 +536,17 @@ function StockRow({ product, onChange, onRemove }) {
               {t || 'None'}
             </option>
           ))}
+        </select>
+      </div>
+      <div className="field">
+        <label htmlFor={`kind-${product.id}`}>Type</label>
+        <select
+          id={`kind-${product.id}`}
+          value={product.kind ?? 'sticker'}
+          onChange={(e) => onChange({ kind: e.target.value })}
+        >
+          <option value="sticker">Single sticker</option>
+          <option value="sheet">A4 sheet</option>
         </select>
       </div>
       <button type="button" className="btn btn-danger btn-sm" onClick={onRemove}>

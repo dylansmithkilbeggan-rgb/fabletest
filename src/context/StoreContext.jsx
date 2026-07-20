@@ -21,6 +21,7 @@ const productToRow = (p) => ({
   size: p.size ?? null,
   tag: p.tag ?? null,
   image: p.image ?? null,
+  kind: p.kind ?? 'sticker',
 })
 
 const rowToProduct = (r) => ({
@@ -30,6 +31,7 @@ const rowToProduct = (r) => ({
   size: r.size ?? '',
   tag: r.tag ?? null,
   image: r.image ?? '',
+  kind: r.kind ?? 'sticker',
 })
 
 const orderToRow = (o) => ({

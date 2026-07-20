@@ -10,8 +10,13 @@ create table if not exists public.products (
   size text,
   tag text,
   image text,
+  -- 'sticker' (single die-cut) or 'sheet' (premade A4 sheet)
+  kind text not null default 'sticker',
   created_at timestamptz not null default now()
 );
+
+-- Migration for databases created before `kind` existed.
+alter table public.products add column if not exists kind text not null default 'sticker';
 
 -- Orders. shipping/items/totals are stored as JSON exactly as the app
 -- builds them, so the admin page can render them without any mapping.

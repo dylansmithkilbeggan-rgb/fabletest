@@ -976,6 +976,19 @@ input[type='range'] {
   top: 84px;
 }
 
+.shop-section {
+  margin-bottom: 2.5rem;
+}
+
+.shop-section .section-head {
+  margin-bottom: 1rem;
+}
+
+.stock-group-title {
+  margin: 2rem 0 0.75rem;
+  font-size: 1.15rem;
+}
+
 .cart-warning {
   margin: 0.6rem 0;
   padding: 0.55rem 0.75rem;
