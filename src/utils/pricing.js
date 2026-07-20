@@ -1,7 +1,7 @@
 // Pricing model:
-//  - A custom A4 sheet is a flat price per page, set by the finish:
-//    plain (no vinyl) or sealed with clear / holographic vinyl laid over
-//    the print.
+//  - A custom A4 sheet is a flat price per sheet, set by the finish:
+//    plain or glossy print, or sealed with clear / holographic vinyl
+//    laid over the print.
 //  - Premade stickers have fixed per-sticker prices (see data/products.js).
 //  - Flat shipping, free above a threshold.
 
@@ -23,10 +23,12 @@ export function premadeShortfall(items) {
   return count === 0 ? 0 : Math.max(0, MIN_PREMADE_QTY - count)
 }
 
+// Prices are per A4 sheet, regardless of how many stickers are on it.
 export const FINISHES = [
-  { id: 'clear', label: 'Clear vinyl', price: 7.0, blurb: 'Glossy seal over the print' },
-  { id: 'holo', label: 'Holographic vinyl', price: 7.0, blurb: 'Rainbow-shift seal' },
-  { id: 'none', label: 'No vinyl', price: 5.0, blurb: 'Just the printed sheet' },
+  { id: 'none', label: 'Plain', price: 5.0, blurb: 'Just the printed sheet' },
+  { id: 'glossy', label: 'Glossy', price: 5.0, blurb: 'Glossy print, no vinyl' },
+  { id: 'clear', label: 'Vinyl', price: 6.0, blurb: 'Clear vinyl seal over the print' },
+  { id: 'holo', label: 'Holographic', price: 7.0, blurb: 'Rainbow-shift vinyl seal' },
 ]
 
 export function getFinish(finishId) {

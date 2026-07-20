@@ -61,7 +61,7 @@ export default function DesignerPage() {
   const location = useLocation()
 
   const [stickers, setStickers] = useState([])
-  const [finish, setFinish] = useState('clear')
+  const [finish, setFinish] = useState('none')
   const [selectedId, setSelectedId] = useState(null)
   const [guides, setGuides] = useState({ v: null, h: null })
   const [previewMode, setPreviewMode] = useState(false)
@@ -98,7 +98,7 @@ export default function DesignerPage() {
     ).then((loaded) => {
       if (!cancelled) {
         setStickers(loaded)
-        setFinish(editItem.design.finish ?? 'clear')
+        setFinish(editItem.design.finish ?? 'none')
       }
     })
     return () => {
@@ -363,6 +363,9 @@ export default function DesignerPage() {
             </div>
             <div className="control">
               <label>Finish</label>
+              <p className="muted small">
+                Priced per sheet — fit as many stickers on it as you like.
+              </p>
               <div className="size-options">
                 {FINISHES.map((f) => (
                   <label key={f.id} className={`size-option ${f.id === finish ? 'active' : ''}`}>

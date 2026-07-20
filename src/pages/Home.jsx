@@ -73,8 +73,8 @@ export default function Home() {
           </div>
           <div className="feature">
             <div className="feature-icon">✨</div>
-            <h3>Clear or holographic finish</h3>
-            <p>Every sheet can be sealed with a layer of clear or holographic vinyl over the print — or kept plain.</p>
+            <h3>Pick your finish</h3>
+            <p>Plain or glossy print, or sealed with a layer of clear or holographic vinyl — one flat price per sheet.</p>
           </div>
         </div>
       </section>
