@@ -388,6 +388,7 @@ function AddProductForm({ onAdd }) {
   const [kind, setKind] = useState('sticker')
   const [price, setPrice] = useState('0.50')
   const [size, setSize] = useState('7 cm die-cut')
+  const [keywords, setKeywords] = useState('')
   const [error, setError] = useState(null)
 
   function handleKind(nextKind) {
@@ -425,9 +426,18 @@ function AddProductForm({ onAdd }) {
       setError('Enter a valid price.')
       return
     }
-    onAdd({ name: name.trim(), price: parsedPrice, size: size.trim(), image, tag: 'New', kind })
+    onAdd({
+      name: name.trim(),
+      price: parsedPrice,
+      size: size.trim(),
+      image,
+      tag: 'New',
+      kind,
+      keywords: keywords.trim(),
+    })
     setImage(null)
     setName('')
+    setKeywords('')
     setPrice(kind === 'sheet' ? '5.00' : '0.50')
     setError(null)
   }
@@ -471,6 +481,15 @@ function AddProductForm({ onAdd }) {
         <div className="field">
           <label htmlFor="new-size">Size / description</label>
           <input id="new-size" value={size} onChange={(e) => setSize(e.target.value)} />
+        </div>
+        <div className="field stock-keywords">
+          <label htmlFor="new-keywords">Search tags (comma separated)</label>
+          <input
+            id="new-keywords"
+            value={keywords}
+            onChange={(e) => setKeywords(e.target.value)}
+            placeholder="e.g. dark, moon, halloween"
+          />
         </div>
         <button type="submit" className="btn btn-primary">
           Add to shop
@@ -586,6 +605,15 @@ function StockRow({ product, onChange, onRemove }) {
       <button type="button" className="btn btn-danger btn-sm" onClick={onRemove}>
         Remove
       </button>
+      <div className="field stock-keywords">
+        <label htmlFor={`keywords-${product.id}`}>Search tags (comma separated)</label>
+        <input
+          id={`keywords-${product.id}`}
+          value={product.keywords ?? ''}
+          onChange={(e) => onChange({ keywords: e.target.value })}
+          placeholder="e.g. dark, moon, halloween"
+        />
+      </div>
       <div className="stock-gallery">
         <span className="muted small">Extra photos (shown on the sticker’s page):</span>
         <input

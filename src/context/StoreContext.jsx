@@ -23,6 +23,7 @@ const productToRow = (p) => ({
   image: p.image ?? null,
   kind: p.kind ?? 'sticker',
   images: p.images ?? [],
+  keywords: p.keywords ?? '',
 })
 
 const rowToProduct = (r) => ({
@@ -34,6 +35,7 @@ const rowToProduct = (r) => ({
   image: r.image ?? '',
   kind: r.kind ?? 'sticker',
   images: Array.isArray(r.images) ? r.images : [],
+  keywords: r.keywords ?? '',
 })
 
 const orderToRow = (o) => ({

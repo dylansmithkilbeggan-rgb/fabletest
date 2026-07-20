@@ -91,6 +91,19 @@ export default function ProductDetail() {
           >
             {justAdded ? 'Added ✓' : 'Add to cart'}
           </button>
+          {product.keywords && (
+            <div className="keyword-chips" aria-label="Related words">
+              {product.keywords
+                .split(',')
+                .map((k) => k.trim())
+                .filter(Boolean)
+                .map((k) => (
+                  <span key={k} className="keyword-chip">
+                    {k}
+                  </span>
+                ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

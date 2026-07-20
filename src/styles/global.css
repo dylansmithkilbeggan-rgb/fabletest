@@ -1458,6 +1458,26 @@ input[type='range'] {
   padding-top: 0.7rem;
 }
 
+.stock-keywords {
+  grid-column: 1 / -1;
+}
+
+.keyword-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 1rem;
+}
+
+.keyword-chip {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+}
+
 .stock-gallery-thumbs {
   display: flex;
   flex-wrap: wrap;

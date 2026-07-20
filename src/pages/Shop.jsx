@@ -13,7 +13,9 @@ export default function Shop() {
   const sheets = products.filter((p) => p.kind === 'sheet')
   const q = query.trim().toLowerCase()
   const matches = q
-    ? stickers.filter((p) => `${p.name} ${p.size} ${p.tag ?? ''}`.toLowerCase().includes(q))
+    ? stickers.filter((p) =>
+        `${p.name} ${p.size} ${p.tag ?? ''} ${p.keywords ?? ''}`.toLowerCase().includes(q),
+      )
     : stickers
   return (
     <div className="container page">
