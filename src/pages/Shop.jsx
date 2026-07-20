@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import StickerCard from '../components/StickerCard.jsx'
 import { CAR_STICKER_SIZES } from './CustomCarSticker.jsx'
@@ -7,8 +8,13 @@ import carExample from '../assets/hero/2-gt86.png'
 
 export default function Shop() {
   const { products } = useStore()
+  const [query, setQuery] = useState('')
   const stickers = products.filter((p) => p.kind !== 'sheet')
   const sheets = products.filter((p) => p.kind === 'sheet')
+  const q = query.trim().toLowerCase()
+  const matches = q
+    ? stickers.filter((p) => `${p.name} ${p.size} ${p.tag ?? ''}`.toLowerCase().includes(q))
+    : stickers
   return (
     <div className="container page">
       <div className="page-head">
@@ -37,10 +43,22 @@ export default function Shop() {
         </section>
       )}
       <section className="shop-section">
-        <div className="section-head">
+        <div className="section-head shop-search-head">
           <h2>Single stickers</h2>
+          <input
+            type="search"
+            className="shop-search"
+            placeholder="Search stickers…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            aria-label="Search single stickers"
+          />
         </div>
+        {q && matches.length === 0 && (
+          <p className="muted">No stickers match “{query.trim()}”.</p>
+        )}
         <div className="shop-grid">
+        {(!q || 'your car drawn custom hand-drawn'.includes(q)) && (
         <Link to="/car-sticker" className="sticker-card car-card">
           <span className="sticker-tag">Custom</span>
           <div className="sticker-card-art">
@@ -57,7 +75,8 @@ export default function Shop() {
             </div>
           </div>
         </Link>
-          {stickers.map((p) => (
+        )}
+          {matches.map((p) => (
             <StickerCard key={p.id} product={p} />
           ))}
         </div>
