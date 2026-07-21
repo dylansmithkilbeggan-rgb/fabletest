@@ -21,6 +21,13 @@ const disabled = import.meta.env.VITE_SUPABASE_DISABLED === 'true'
 export const supabase = !disabled && url && anonKey ? createClient(url, anonKey) : null
 export const supabaseEnabled = Boolean(supabase)
 
+// Optional listener so the UI can surface a save failure to the owner. The
+// admin registers one to show a banner; the storefront leaves it unset.
+let syncErrorHandler = null
+export function onSyncError(handler) {
+  syncErrorHandler = handler
+}
+
 // Log-and-continue error handling: the UI already updated optimistically,
 // so a failed sync should be visible in the console, not crash the shop.
 // Handles both PostgREST errors (resolved with { error }) and network-level
@@ -28,9 +35,13 @@ export const supabaseEnabled = Boolean(supabase)
 export function syncToSupabase(builder, where) {
   Promise.resolve(builder)
     .then(({ error }) => {
-      if (error) console.warn(`Supabase ${where} failed:`, error.message ?? error)
+      if (error) {
+        console.warn(`Supabase ${where} failed:`, error.message ?? error)
+        syncErrorHandler?.(where, error.message ?? String(error))
+      }
     })
     .catch((err) => {
       console.warn(`Supabase ${where} failed:`, err?.message ?? err)
+      syncErrorHandler?.(where, err?.message ?? String(err))
     })
 }

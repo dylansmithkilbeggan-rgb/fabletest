@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useReducer, useRef } fro
 import { cartTotals } from '../utils/pricing.js'
 import { PRODUCTS as SEED_PRODUCTS } from '../data/products.js'
 import { SEED_SECTIONS } from '../data/sections.js'
-import { supabase, supabaseEnabled, syncToSupabase } from '../lib/supabase.js'
+import { supabase, supabaseEnabled, syncToSupabase, onSyncError } from '../lib/supabase.js'
 
 // The store keeps all state in React memory and, when Supabase credentials
 // are configured (see src/lib/supabase.js), mirrors orders and products to
@@ -133,6 +133,8 @@ function reducer(state, action) {
       }
     case 'REMOVE_PRODUCT':
       return { ...state, products: state.products.filter((p) => p.id !== action.id) }
+    case 'SET_SYNC_ERROR':
+      return { ...state, syncError: action.error }
     case 'SET_SECTIONS':
       return { ...state, sections: action.sections }
     case 'ADD_SECTION':
@@ -164,6 +166,7 @@ export function StoreProvider({ children }) {
     lastOrder: null,
     products: SEED_PRODUCTS,
     sections: SEED_SECTIONS,
+    syncError: null,
   })
 
   // Latest state for the service API below (its callbacks are memoized once).
@@ -242,8 +245,19 @@ export function StoreProvider({ children }) {
     }
   }, [])
 
+  // Surface failed background saves (e.g. a rejected write when the admin
+  // session has lapsed) so the owner sees them instead of silent data loss.
+  useEffect(() => {
+    if (!supabaseEnabled) return
+    onSyncError((where, message) => dispatch({ type: 'SET_SYNC_ERROR', error: { where, message } }))
+    return () => onSyncError(null)
+  }, [])
+
   const api = useMemo(
     () => ({
+      clearSyncError() {
+        dispatch({ type: 'SET_SYNC_ERROR', error: null })
+      },
       addItem(item) {
         const id = item.id ?? `item-${itemSeq++}`
         dispatch({ type: 'ADD_ITEM', item: { qty: 1, ...item, id } })
@@ -370,6 +384,7 @@ export function StoreProvider({ children }) {
       lastOrder: state.lastOrder,
       products: state.products,
       sections: state.sections,
+      syncError: state.syncError,
       persisted: supabaseEnabled,
       totals,
       count,

@@ -28,6 +28,7 @@ function formatDate(iso) {
 export default function Admin() {
   const [tab, setTab] = useState('orders')
   const auth = useAdminAuth()
+  const { syncError, clearSyncError } = useStore()
 
   if (!auth.ready) {
     return (
@@ -85,6 +86,35 @@ export default function Admin() {
           </button>
         </div>
       </div>
+      {syncError && (
+        <div className="save-error" role="alert">
+          <div>
+            <strong>That change didn’t save.</strong>{' '}
+            <span className="muted small">({syncError.message})</span>
+            <div className="muted small">
+              This usually means your sign-in has expired. Sign out and back in, then try again — the
+              change you just made will need to be redone.
+            </div>
+          </div>
+          <div className="save-error-actions">
+            {supabaseEnabled && (
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                onClick={() => {
+                  clearSyncError()
+                  auth.signOut()
+                }}
+              >
+                Sign out
+              </button>
+            )}
+            <button type="button" className="btn btn-ghost btn-sm" onClick={clearSyncError}>
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
       {tab === 'orders' && <OrdersPanel />}
       {tab === 'stock' && <StockPanel />}
       {tab === 'sections' && <SectionsPanel />}

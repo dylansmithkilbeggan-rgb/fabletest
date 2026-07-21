@@ -1462,6 +1462,30 @@ input[type='range'] {
   grid-column: 1 / -1;
 }
 
+.save-error {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  background: #fef2f2;
+  border: 1.5px solid #fecaca;
+  color: #991b1b;
+  border-radius: 12px;
+  padding: 0.9rem 1.1rem;
+  margin-bottom: 1.25rem;
+}
+
+.save-error .muted {
+  color: #b45c5c;
+}
+
+.save-error-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
 /* Section picker: full-width row so it never squashes the fixed grid. */
 .stock-section {
   grid-column: 1 / -1;
