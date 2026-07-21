@@ -92,8 +92,9 @@ export default function Admin() {
             <strong>That change didn’t save.</strong>{' '}
             <span className="muted small">({syncError.message})</span>
             <div className="muted small">
-              This usually means your sign-in has expired. Sign out and back in, then try again — the
-              change you just made will need to be redone.
+              It shows on screen but wasn’t stored, so it’ll disappear on refresh. If this keeps
+              happening, try signing out and back in — and send the message above to Claude, who can
+              tell what’s wrong from it.
             </div>
           </div>
           <div className="save-error-actions">
