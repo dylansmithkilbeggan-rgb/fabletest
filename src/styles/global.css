@@ -1462,6 +1462,58 @@ input[type='range'] {
   grid-column: 1 / -1;
 }
 
+/* Section picker: full-width row so it never squashes the fixed grid. */
+.stock-section {
+  grid-column: 1 / -1;
+}
+
+.stock-section select {
+  max-width: 340px;
+}
+
+/* Sections admin tab */
+.section-add-grid {
+  grid-template-columns: 1.4fr 1.6fr auto auto;
+}
+
+.section-row {
+  grid-template-columns: 1.2fr 1.6fr auto auto auto;
+  align-items: end;
+}
+
+.section-home-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  padding-bottom: 0.15rem;
+}
+
+.section-home-toggle input {
+  width: 1.05rem;
+  height: 1.05rem;
+  accent-color: var(--accent);
+}
+
+.section-count {
+  white-space: nowrap;
+  padding-bottom: 0.55rem;
+}
+
+@media (max-width: 720px) {
+  .section-add-grid,
+  .section-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* A subtle accent bar to set collab / collection sections apart. */
+.shop-section-collab .section-head {
+  border-left: 4px solid var(--accent);
+  padding-left: 0.9rem;
+}
+
 .keyword-chips {
   display: flex;
   flex-wrap: wrap;

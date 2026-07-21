@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useReducer, useRef } from 'react'
 import { cartTotals } from '../utils/pricing.js'
 import { PRODUCTS as SEED_PRODUCTS } from '../data/products.js'
+import { SEED_SECTIONS } from '../data/sections.js'
 import { supabase, supabaseEnabled, syncToSupabase } from '../lib/supabase.js'
 
 // The store keeps all state in React memory and, when Supabase credentials
@@ -13,6 +14,7 @@ const StoreContext = createContext(null)
 
 let itemSeq = 1
 let productSeq = 1
+let sectionSeq = 1
 
 const productToRow = (p) => ({
   id: p.id,
@@ -24,6 +26,7 @@ const productToRow = (p) => ({
   kind: p.kind ?? 'sticker',
   images: p.images ?? [],
   keywords: p.keywords ?? '',
+  section: p.section ?? '',
 })
 
 const rowToProduct = (r) => ({
@@ -36,6 +39,21 @@ const rowToProduct = (r) => ({
   kind: r.kind ?? 'sticker',
   images: Array.isArray(r.images) ? r.images : [],
   keywords: r.keywords ?? '',
+  section: r.section ?? '',
+})
+
+const sectionToRow = (s) => ({
+  id: s.id,
+  title: s.title,
+  blurb: s.blurb ?? '',
+  show_on_home: s.showOnHome ?? false,
+})
+
+const rowToSection = (r) => ({
+  id: r.id,
+  title: r.title,
+  blurb: r.blurb ?? '',
+  showOnHome: Boolean(r.show_on_home),
 })
 
 const orderToRow = (o) => ({
@@ -115,6 +133,25 @@ function reducer(state, action) {
       }
     case 'REMOVE_PRODUCT':
       return { ...state, products: state.products.filter((p) => p.id !== action.id) }
+    case 'SET_SECTIONS':
+      return { ...state, sections: action.sections }
+    case 'ADD_SECTION':
+      return { ...state, sections: [...state.sections, action.section] }
+    case 'UPDATE_SECTION':
+      return {
+        ...state,
+        sections: state.sections.map((s) => (s.id === action.id ? { ...s, ...action.patch } : s)),
+      }
+    case 'REMOVE_SECTION':
+      return {
+        ...state,
+        sections: state.sections.filter((s) => s.id !== action.id),
+        // products that pointed at the deleted section fall back to the
+        // default shop lists.
+        products: state.products.map((p) =>
+          p.section === action.id ? { ...p, section: '' } : p,
+        ),
+      }
     default:
       return state
   }
@@ -126,6 +163,7 @@ export function StoreProvider({ children }) {
     orders: [],
     lastOrder: null,
     products: SEED_PRODUCTS,
+    sections: SEED_SECTIONS,
   })
 
   // Latest state for the service API below (its callbacks are memoized once).
@@ -158,6 +196,24 @@ export function StoreProvider({ children }) {
       if (error) console.warn('Supabase load products failed:', error.message)
     }
 
+    async function loadSections() {
+      const { data: rows, error } = await supabase
+        .from('sections')
+        .select('*')
+        .order('created_at', { ascending: true })
+      if (!cancelled && !error && rows) {
+        if (rows.length === 0) {
+          syncToSupabase(
+            supabase.from('sections').upsert(SEED_SECTIONS.map(sectionToRow)),
+            'seed sections',
+          )
+        } else {
+          dispatch({ type: 'SET_SECTIONS', sections: rows.map(rowToSection) })
+        }
+      }
+      if (error) console.warn('Supabase load sections failed:', error.message)
+    }
+
     async function loadOrders() {
       const { data: rows, error } = await supabase
         .from('orders')
@@ -170,6 +226,7 @@ export function StoreProvider({ children }) {
     }
 
     loadProducts().catch((err) => console.warn('Supabase load products failed:', err?.message ?? err))
+    loadSections().catch((err) => console.warn('Supabase load sections failed:', err?.message ?? err))
 
     const { data: authSub } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
@@ -263,6 +320,42 @@ export function StoreProvider({ children }) {
           syncToSupabase(supabase.from('products').delete().eq('id', id), 'delete product')
         }
       },
+      addSection(section) {
+        const id = `section-${Date.now()}-${sectionSeq++}`
+        const full = { blurb: '', showOnHome: false, ...section, id }
+        dispatch({ type: 'ADD_SECTION', section: full })
+        if (supabase) {
+          syncToSupabase(supabase.from('sections').insert(sectionToRow(full)), 'insert section')
+        }
+        return id
+      },
+      updateSection(id, patch) {
+        dispatch({ type: 'UPDATE_SECTION', id, patch })
+        if (supabase) {
+          const current = stateRef.current.sections.find((s) => s.id === id)
+          if (current) {
+            syncToSupabase(
+              supabase.from('sections').upsert(sectionToRow({ ...current, ...patch })),
+              'update section',
+            )
+          }
+        }
+      },
+      removeSection(id) {
+        // Detach products locally so they return to the default lists; the
+        // database enforces the same via the products it still holds.
+        const affected = stateRef.current.products.filter((p) => p.section === id)
+        dispatch({ type: 'REMOVE_SECTION', id })
+        if (supabase) {
+          syncToSupabase(supabase.from('sections').delete().eq('id', id), 'delete section')
+          if (affected.length > 0) {
+            syncToSupabase(
+              supabase.from('products').update({ section: '' }).eq('section', id),
+              'clear product sections',
+            )
+          }
+        }
+      },
     }),
     [],
   )
@@ -276,6 +369,7 @@ export function StoreProvider({ children }) {
       orders: state.orders,
       lastOrder: state.lastOrder,
       products: state.products,
+      sections: state.sections,
       persisted: supabaseEnabled,
       totals,
       count,

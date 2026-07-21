@@ -74,9 +74,20 @@ export default function Admin() {
           >
             Stock
           </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === 'sections'}
+            className={`admin-tab ${tab === 'sections' ? 'active' : ''}`}
+            onClick={() => setTab('sections')}
+          >
+            Sections
+          </button>
         </div>
       </div>
-      {tab === 'orders' ? <OrdersPanel /> : <StockPanel />}
+      {tab === 'orders' && <OrdersPanel />}
+      {tab === 'stock' && <StockPanel />}
+      {tab === 'sections' && <SectionsPanel />}
     </div>
   )
 }
@@ -344,7 +355,7 @@ function OrdersPanel() {
 }
 
 function StockPanel() {
-  const { products, addProduct, updateProduct, removeProduct, persisted } = useStore()
+  const { products, sections, addProduct, updateProduct, removeProduct, persisted } = useStore()
 
   return (
     <>
@@ -354,7 +365,7 @@ function StockPanel() {
           ? ' and are stored in Supabase.'
           : ' — but reset on refresh until Supabase is connected (add your keys to .env.local).'}
       </p>
-      <AddProductForm onAdd={addProduct} />
+      <AddProductForm onAdd={addProduct} sections={sections} />
       {[
         { kind: 'sheet', title: 'Premade A4 sheets' },
         { kind: 'sticker', title: 'Single stickers' },
@@ -369,6 +380,7 @@ function StockPanel() {
                 <StockRow
                   key={p.id}
                   product={p}
+                  sections={sections}
                   onChange={(patch) => updateProduct(p.id, patch)}
                   onRemove={() => removeProduct(p.id)}
                 />
@@ -381,7 +393,144 @@ function StockPanel() {
   )
 }
 
-function AddProductForm({ onAdd }) {
+function SectionsPanel() {
+  const { sections, products, addSection, updateSection, removeSection, persisted } = useStore()
+
+  function handleRemove(section) {
+    const count = products.filter((p) => p.section === section.id).length
+    const tail =
+      count > 0
+        ? ` Its ${count} sticker${count === 1 ? '' : 's'} will move back to the normal shop lists.`
+        : ''
+    if (window.confirm(`Delete the “${section.title}” section?${tail}`)) {
+      removeSection(section.id)
+    }
+  }
+
+  return (
+    <>
+      <p className="muted">
+        Sections are collections on the shop — like a collab. Make one here, then pick it as the
+        “Section” on any sticker in the Stock tab to file it under that heading.
+        {persisted ? '' : ' Not connected to Supabase, so these reset on refresh.'}
+      </p>
+      <AddSectionForm onAdd={addSection} />
+      {sections.length === 0 ? (
+        <div className="card admin-empty">
+          <p>
+            <strong>No sections yet.</strong>
+          </p>
+          <p className="muted">Add one above to group stickers into a collection.</p>
+        </div>
+      ) : (
+        <div className="stock-list">
+          {sections.map((section) => {
+            const count = products.filter((p) => p.section === section.id).length
+            return (
+              <div key={section.id} className="card stock-row section-row">
+                <div className="field section-title-field">
+                  <label htmlFor={`section-title-${section.id}`}>Section name</label>
+                  <input
+                    id={`section-title-${section.id}`}
+                    value={section.title}
+                    onChange={(e) => updateSection(section.id, { title: e.target.value })}
+                  />
+                </div>
+                <div className="field section-blurb-field">
+                  <label htmlFor={`section-blurb-${section.id}`}>Description (optional)</label>
+                  <input
+                    id={`section-blurb-${section.id}`}
+                    value={section.blurb ?? ''}
+                    onChange={(e) => updateSection(section.id, { blurb: e.target.value })}
+                    placeholder="Shown under the heading in the shop"
+                  />
+                </div>
+                <label className="section-home-toggle">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(section.showOnHome)}
+                    onChange={(e) => updateSection(section.id, { showOnHome: e.target.checked })}
+                  />
+                  Show on home page
+                </label>
+                <span className="muted small section-count">
+                  {count} sticker{count === 1 ? '' : 's'}
+                </span>
+                <button
+                  type="button"
+                  className="btn btn-danger btn-sm"
+                  onClick={() => handleRemove(section)}
+                >
+                  Delete
+                </button>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </>
+  )
+}
+
+function AddSectionForm({ onAdd }) {
+  const [title, setTitle] = useState('')
+  const [blurb, setBlurb] = useState('')
+  const [showOnHome, setShowOnHome] = useState(true)
+  const [error, setError] = useState(null)
+
+  function handleSubmit(e) {
+    e.preventDefault()
+    if (!title.trim()) {
+      setError('Give the section a name.')
+      return
+    }
+    onAdd({ title: title.trim(), blurb: blurb.trim(), showOnHome })
+    setTitle('')
+    setBlurb('')
+    setShowOnHome(true)
+    setError(null)
+  }
+
+  return (
+    <form className="card stock-add" onSubmit={handleSubmit}>
+      <h2>Add a section</h2>
+      <div className="stock-add-grid section-add-grid">
+        <div className="field">
+          <label htmlFor="new-section-title">Section name</label>
+          <input
+            id="new-section-title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="e.g. Faithfull Stickers × Weronika"
+          />
+        </div>
+        <div className="field">
+          <label htmlFor="new-section-blurb">Description (optional)</label>
+          <input
+            id="new-section-blurb"
+            value={blurb}
+            onChange={(e) => setBlurb(e.target.value)}
+            placeholder="A short line shown under the heading"
+          />
+        </div>
+        <label className="section-home-toggle">
+          <input
+            type="checkbox"
+            checked={showOnHome}
+            onChange={(e) => setShowOnHome(e.target.checked)}
+          />
+          Show on home page
+        </label>
+        <button type="submit" className="btn btn-primary">
+          Add section
+        </button>
+      </div>
+      {error && <p className="field-error">{error}</p>}
+    </form>
+  )
+}
+
+function AddProductForm({ onAdd, sections }) {
   const fileInputRef = useRef(null)
   const [image, setImage] = useState(null)
   const [name, setName] = useState('')
@@ -389,6 +538,7 @@ function AddProductForm({ onAdd }) {
   const [price, setPrice] = useState('0.50')
   const [size, setSize] = useState('7 cm die-cut')
   const [keywords, setKeywords] = useState('')
+  const [section, setSection] = useState('')
   const [error, setError] = useState(null)
 
   function handleKind(nextKind) {
@@ -434,10 +584,12 @@ function AddProductForm({ onAdd }) {
       tag: 'New',
       kind,
       keywords: keywords.trim(),
+      section,
     })
     setImage(null)
     setName('')
     setKeywords('')
+    setSection('')
     setPrice(kind === 'sheet' ? '5.00' : '0.50')
     setError(null)
   }
@@ -482,6 +634,19 @@ function AddProductForm({ onAdd }) {
           <label htmlFor="new-size">Size / description</label>
           <input id="new-size" value={size} onChange={(e) => setSize(e.target.value)} />
         </div>
+        {sections.length > 0 && (
+          <div className="field stock-section">
+            <label htmlFor="new-section">Section</label>
+            <select id="new-section" value={section} onChange={(e) => setSection(e.target.value)}>
+              <option value="">No section</option>
+              {sections.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.title}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <div className="field stock-keywords">
           <label htmlFor="new-keywords">Search tags (comma separated)</label>
           <input
@@ -500,7 +665,7 @@ function AddProductForm({ onAdd }) {
   )
 }
 
-function StockRow({ product, onChange, onRemove }) {
+function StockRow({ product, sections, onChange, onRemove }) {
   const fileInputRef = useRef(null)
   const galleryInputRef = useRef(null)
   const images = product.images ?? []
@@ -602,6 +767,23 @@ function StockRow({ product, onChange, onRemove }) {
           <option value="sheet">A4 sheet</option>
         </select>
       </div>
+      {sections.length > 0 && (
+        <div className="field stock-section">
+          <label htmlFor={`section-${product.id}`}>Section</label>
+          <select
+            id={`section-${product.id}`}
+            value={product.section ?? ''}
+            onChange={(e) => onChange({ section: e.target.value })}
+          >
+            <option value="">No section</option>
+            {sections.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.title}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
       <button type="button" className="btn btn-danger btn-sm" onClick={onRemove}>
         Remove
       </button>

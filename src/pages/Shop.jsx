@@ -7,16 +7,25 @@ import { useStore } from '../context/StoreContext.jsx'
 import carExample from '../assets/hero/2-gt86.png'
 
 export default function Shop() {
-  const { products } = useStore()
+  const { products, sections } = useStore()
   const [query, setQuery] = useState('')
-  const stickers = products.filter((p) => p.kind !== 'sheet')
-  const sheets = products.filter((p) => p.kind === 'sheet')
+
+  // A product only counts as "in a section" if that section still exists;
+  // everything else falls into the default sheet / single-sticker lists.
+  const liveSectionIds = new Set(sections.map((s) => s.id))
+  const inSection = (p) => p.section && liveSectionIds.has(p.section)
+
+  const unsectioned = products.filter((p) => !inSection(p))
+  const stickers = unsectioned.filter((p) => p.kind !== 'sheet')
+  const sheets = unsectioned.filter((p) => p.kind === 'sheet')
+
   const q = query.trim().toLowerCase()
   const matches = q
     ? stickers.filter((p) =>
         `${p.name} ${p.size} ${p.tag ?? ''} ${p.keywords ?? ''}`.toLowerCase().includes(q),
       )
     : stickers
+
   return (
     <div className="container page">
       <div className="page-head">
@@ -31,6 +40,25 @@ export default function Shop() {
           .
         </p>
       </div>
+
+      {sections.map((section) => {
+        const items = products.filter((p) => p.section === section.id)
+        if (items.length === 0) return null
+        return (
+          <section key={section.id} className="shop-section shop-section-collab">
+            <div className="section-head">
+              <h2>{section.title}</h2>
+              {section.blurb && <p className="muted">{section.blurb}</p>}
+            </div>
+            <div className="shop-grid">
+              {items.map((p) => (
+                <StickerCard key={p.id} product={p} />
+              ))}
+            </div>
+          </section>
+        )
+      })}
+
       {sheets.length > 0 && (
         <section className="shop-section">
           <div className="section-head">

@@ -20,11 +20,19 @@ const heroUploads = Object.entries(
 const HERO_STICKERS = ['sunny', 'bolt', 'cat', 'rainbow', 'ghost']
 
 export default function Home() {
-  const { products } = useStore()
+  const { products, sections } = useStore()
   const heroImages =
     heroUploads.length > 0
       ? heroUploads.slice(0, 5)
       : HERO_STICKERS.map((id) => PRODUCTS.find((p) => p.id === id).image)
+
+  const liveSectionIds = new Set(sections.map((s) => s.id))
+
+  // Sections the owner flagged for the home page, that actually have products.
+  const homeSections = sections
+    .filter((s) => s.showOnHome)
+    .map((s) => ({ ...s, items: products.filter((p) => p.section === s.id) }))
+    .filter((s) => s.items.length > 0)
 
   return (
     <>
@@ -80,6 +88,27 @@ export default function Home() {
         </div>
       </section>
 
+      {homeSections.map((section) => (
+        <section key={section.id} className="home-shop home-collab">
+          <div className="container">
+            <div className="section-head">
+              <div>
+                <h2>{section.title}</h2>
+                {section.blurb && <p className="muted">{section.blurb}</p>}
+              </div>
+              <Link to="/shop" className="text-link">
+                See the collection →
+              </Link>
+            </div>
+            <div className="shop-grid">
+              {section.items.slice(0, 4).map((p) => (
+                <StickerCard key={p.id} product={p} />
+              ))}
+            </div>
+          </div>
+        </section>
+      ))}
+
       <section className="home-shop">
         <div className="container">
           <div className="section-head">
@@ -89,9 +118,12 @@ export default function Home() {
             </Link>
           </div>
           <div className="shop-grid">
-            {products.slice(0, 4).map((p) => (
-              <StickerCard key={p.id} product={p} />
-            ))}
+            {products
+              .filter((p) => !liveSectionIds.has(p.section))
+              .slice(0, 4)
+              .map((p) => (
+                <StickerCard key={p.id} product={p} />
+              ))}
           </div>
         </div>
       </section>

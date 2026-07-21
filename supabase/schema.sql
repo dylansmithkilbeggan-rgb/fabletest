@@ -16,6 +16,20 @@ create table if not exists public.products (
   images jsonb not null default '[]'::jsonb,
   -- comma-separated search words the shop search matches ("dark, moon, goth")
   keywords text not null default '',
+  -- id of the shop section/collection this product belongs to (e.g. a collab).
+  -- empty means it falls into the default "Single stickers" / "Premade sheets".
+  section text not null default '',
+  created_at timestamptz not null default now()
+);
+
+-- Custom shop sections/collections the owner manages in the admin (e.g. a
+-- "Faithfull Stickers × Weronika" collab). Products point at one by id.
+create table if not exists public.sections (
+  id text primary key,
+  title text not null,
+  blurb text not null default '',
+  -- when true, the section also gets its own block on the home page
+  show_on_home boolean not null default false,
   created_at timestamptz not null default now()
 );
 
@@ -23,6 +37,7 @@ create table if not exists public.products (
 alter table public.products add column if not exists kind text not null default 'sticker';
 alter table public.products add column if not exists images jsonb not null default '[]'::jsonb;
 alter table public.products add column if not exists keywords text not null default '';
+alter table public.products add column if not exists section text not null default '';
 
 -- Orders. shipping/items/totals are stored as JSON exactly as the app
 -- builds them, so the admin page can render them without any mapping.
@@ -37,6 +52,7 @@ create table if not exists public.orders (
 
 alter table public.products enable row level security;
 alter table public.orders enable row level security;
+alter table public.sections enable row level security;
 
 -- ============================================================
 -- PROTOTYPE POLICIES — open access with the anon key.
@@ -50,6 +66,11 @@ alter table public.orders enable row level security;
 create policy "prototype read products" on public.products
   for select using (true);
 create policy "prototype write products" on public.products
+  for all using (true) with check (true);
+
+create policy "prototype read sections" on public.sections
+  for select using (true);
+create policy "prototype write sections" on public.sections
   for all using (true) with check (true);
 
 create policy "prototype insert orders" on public.orders
