@@ -1462,6 +1462,16 @@ input[type='range'] {
   grid-column: 1 / -1;
 }
 
+.confirmation-check-warn {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.confirmation-actions {
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
 .save-error {
   display: flex;
   align-items: flex-start;

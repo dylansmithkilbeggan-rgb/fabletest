@@ -17,11 +17,12 @@ const EMPTY_FORM = {
 }
 
 export default function Checkout() {
-  const { items, totals, placeOrder } = useStore()
+  const { items, totals, placeOrder, beginCheckout, clearCart, persisted } = useStore()
   const navigate = useNavigate()
   const [form, setForm] = useState(EMPTY_FORM)
   const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
+  const [payError, setPayError] = useState(null)
 
   if ((items.length === 0 || premadeShortfall(items) > 0) && !submitting) {
     return <Navigate to="/cart" replace />
@@ -44,15 +45,61 @@ export default function Checkout() {
     return Object.keys(next).length === 0
   }
 
+  // Offline preview / no backend: keep the mock so the prototype still runs.
+  function placeMockOrder() {
+    placeOrder({ ...form })
+    navigate('/confirmation')
+  }
+
   async function handleSubmit(e) {
     e.preventDefault()
     if (!validate()) return
     setSubmitting(true)
-    // Simulate a payment + order API round-trip. Swap this block for a real
-    // Stripe PaymentIntent confirmation + POST /orders later.
-    await new Promise((resolve) => setTimeout(resolve, 800))
-    placeOrder({ ...form })
-    navigate('/confirmation')
+    setPayError(null)
+
+    if (!persisted) {
+      await new Promise((resolve) => setTimeout(resolve, 600))
+      placeMockOrder()
+      return
+    }
+
+    const orderId = `FS-${Math.random().toString(36).slice(2, 8).toUpperCase()}`
+    try {
+      const res = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId,
+          email: form.email.trim(),
+          origin: window.location.origin,
+          shipping: totals.shipping,
+          items: items.map((i) => ({ name: i.name, unitPrice: i.unitPrice, qty: i.qty })),
+        }),
+      })
+
+      if (res.ok) {
+        const { url } = await res.json()
+        if (url) {
+          // Save the order as pending, then hand off to Stripe's payment page.
+          beginCheckout({ ...form }, orderId)
+          clearCart()
+          window.location.href = url
+          return
+        }
+      }
+
+      // Stripe keys not added yet → behave like the prototype for now.
+      if (res.status === 501) {
+        placeMockOrder()
+        return
+      }
+
+      throw new Error(`checkout failed (${res.status})`)
+    } catch (err) {
+      console.warn('Checkout error:', err)
+      setPayError('Sorry — we couldn’t start the payment. Please try again in a moment.')
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -76,17 +123,14 @@ export default function Checkout() {
           <section className="card form-section">
             <div className="payment-head">
               <h2>Payment</h2>
-              <span className="badge">Test mode</span>
+              <span className="badge">🔒 Secure</span>
             </div>
             <p className="muted small">
-              Payments are mocked in this prototype — no card is charged. This section is laid out
-              to be replaced by Stripe Elements.
+              {persisted
+                ? 'When you press Pay, you’ll go to our secure Stripe payment page to enter your card — Faithfull Stickers never sees your card details. You’ll come straight back here once it’s done.'
+                : 'Preview mode — no card is charged. Connect Stripe to take real payments.'}
             </p>
-            <Field label="Card number" id="card" value="4242 4242 4242 4242" readOnly />
-            <div className="form-row">
-              <Field label="Expiry" id="expiry" value="12 / 34" readOnly />
-              <Field label="CVC" id="cvc" value="123" readOnly />
-            </div>
+            {payError && <p className="field-error">{payError}</p>}
           </section>
         </div>
 

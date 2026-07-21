@@ -291,6 +291,24 @@ export function StoreProvider({ children }) {
         }
         return order
       },
+      // Record an order as 'pending' right before sending the shopper to
+      // Stripe. The confirm-order function flips it to 'new' once Stripe
+      // says the payment went through, so unpaid attempts never count.
+      beginCheckout(shipping, orderId) {
+        const items = stateRef.current.items
+        const order = {
+          id: orderId,
+          placedAt: new Date().toISOString(),
+          status: 'pending',
+          shipping,
+          items,
+          totals: cartTotals(items),
+        }
+        if (supabase) {
+          syncToSupabase(supabase.from('orders').insert(orderToRow(order)), 'begin checkout')
+        }
+        return order
+      },
       setOrderStatus(id, status) {
         dispatch({ type: 'SET_ORDER_STATUS', id, status })
         if (supabase) {

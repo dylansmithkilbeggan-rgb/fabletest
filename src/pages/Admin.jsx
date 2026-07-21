@@ -253,8 +253,11 @@ function FallbackLogin({ auth }) {
 }
 
 function OrdersPanel() {
-  const { orders, setOrderStatus, clearOrders, persisted } = useStore()
+  const { orders: allOrders, setOrderStatus, clearOrders, persisted } = useStore()
   const [openOrderId, setOpenOrderId] = useState(null)
+  // 'pending' orders are checkout attempts that haven't been paid yet — keep
+  // them out of the real orders list, stats and revenue.
+  const orders = allOrders.filter((o) => o.status !== 'pending')
 
   function handleClearAll() {
     const ok = window.confirm(
